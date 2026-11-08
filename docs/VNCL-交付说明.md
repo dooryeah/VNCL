@@ -79,3 +79,12 @@ Copy-Item HMCL\build\libs\VNCL-0.1.SNAPSHOT.exe dist\VNCL.exe -Force
 - 修复：调整「VNCL 外观」滑块时，运行时替换样式表会让 JFXSwitch 控件重新测量、渲染成黑色色块，并伴随背景闪烁。
 - 现在外观 token 只在启动时应用一次，设置页提示「外观修改将在重启启动器后生效」；滑块仍会立即显示数值并持久化。
 - 这样避免了拖动/松手时的整页重排与控件变形。
+
+## 10. Logo / 图标
+
+- 启动器 logo 与 icon 已替换为用户提供的图片：窗口图标（`icon*.png`）、标题栏图标（`icon-title*.png`）、关于页图标、macOS 图标与 exe 图标。
+- 小尺寸（16–64px）使用面部紧凑裁切，保证任务栏/标题栏可辨认；大尺寸保留完整构图；四角做透明圆角。
+- 生成脚本：`scripts/generate-icons.py <图片> [资源目录]`，输出 `assets/img/icon*.png` 与 `image/vncl.ico`。
+- exe 图标：`scripts/set-exe-icon.ps1 -ExePath dist\VNCL.exe -IcoPath image\vncl.ico -JarPath HMCL\build\libs\VNCL-0.1.SNAPSHOT.jar`。
+  启动器 exe 是 HMCLauncher 桩 + 追加的 jar；直接 `UpdateResource` 会丢掉追加的 jar，脚本会先提取桩、改图标、再与 jar 拼接。
+- 一键构建：`scripts/build-dist.ps1`（Gradle 构建 → 复制到 dist → 打图标）。
