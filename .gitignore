@@ -82,3 +82,7 @@ language-subtag-registry
 /.vncl/
 /smoke-*.png
 
+
+# build output
+/dist/
+

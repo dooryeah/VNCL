@@ -185,6 +185,11 @@ tasks.jar {
     dependsOn(tasks["shadowJar"])
 }
 
+// VNCL: publish artifacts under the fork's own name.
+tasks.withType<Jar>().configureEach {
+    archiveBaseName.set("VNCL")
+}
+
 val jarPath = tasks.jar.get().archiveFile.get().asFile
 
 tasks.shadowJar {

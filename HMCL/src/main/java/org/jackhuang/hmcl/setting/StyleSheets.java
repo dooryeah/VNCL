@@ -13,6 +13,8 @@ import org.glavo.monetfx.ColorScheme;
 import org.jackhuang.hmcl.theme.ResolvedTheme;
 import org.jackhuang.hmcl.theme.ThemeColor;
 import org.jackhuang.hmcl.theme.Themes;
+import org.jackhuang.hmcl.vncl.VnclStyleSheets;
+import org.jackhuang.hmcl.vncl.VnclUiConfig;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ public final class StyleSheets {
     private static final int FONT_STYLE_SHEET_INDEX = 0;
     private static final int THEME_STYLE_SHEET_INDEX = 1;
     private static final int BRIGHTNESS_SHEET_INDEX = 2;
+    private static final int VNCL_STYLE_SHEET_INDEX = 3;
 
     private static final ObservableList<String> stylesheets;
 
@@ -34,7 +37,8 @@ public final class StyleSheets {
                 getFontStyleSheet(),
                 getThemeStyleSheet(),
                 getBrightnessStyleSheet(),
-                "/assets/css/root.css"
+                "/assets/css/root.css",
+                VnclStyleSheets.getStyleSheet()
         };
         stylesheets = FXCollections.observableList(Arrays.asList(array));
 
@@ -43,6 +47,13 @@ public final class StyleSheets {
             stylesheets.set(THEME_STYLE_SHEET_INDEX, getThemeStyleSheet());
             stylesheets.set(BRIGHTNESS_SHEET_INDEX, getBrightnessStyleSheet());
         });
+        // VNCL: regenerate the token style sheet whenever one of the appearance tokens changes.
+        VnclUiConfig.cornerRadiusProperty().addListener(o ->
+                stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
+        VnclUiConfig.densityProperty().addListener(o ->
+                stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
+        VnclUiConfig.fontScaleProperty().addListener(o ->
+                stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
     }
 
     private static String toStyleSheetUri(String styleSheet) {

@@ -5,16 +5,23 @@ package org.jackhuang.hmcl.ui.main;
 import com.jfoenix.controls.JFXButton;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.jackhuang.hmcl.Metadata;
 import org.jackhuang.hmcl.task.Schedulers;
@@ -30,7 +37,9 @@ import org.jackhuang.hmcl.util.i18n.I18n;
 import org.jackhuang.hmcl.util.i18n.SupportedLocale;
 import org.jackhuang.hmcl.util.io.FileUtils;
 import org.jackhuang.hmcl.util.io.IOUtils;
+import org.jackhuang.hmcl.vncl.VnclUiConfig;
 import org.jetbrains.annotations.NotNullByDefault;
+import org.jetbrains.annotations.Nullable;
 import org.tukaani.xz.XZInputStream;
 
 import java.io.IOException;
@@ -40,8 +49,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -57,6 +68,9 @@ public final class SettingsPage extends ScrollPane {
     @SuppressWarnings("FieldCanBeLocal")
     private final InvalidationListener updateListener;
 
+    /// Sections displayed on the page, tracked so the VNCL search box can filter them.
+    private final List<Section> sections = new ArrayList<>();
+
     public SettingsPage() {
         this.setFitToWidth(true);
 
@@ -65,7 +79,55 @@ public final class SettingsPage extends ScrollPane {
         this.setContent(rootPane);
         FXUtils.smoothScrolling(this);
 
+        TextField searchField = new TextField();
+        searchField.setPromptText(i18n("vncl.settings.search"));
+        searchField.getStyleClass().add("vncl-settings-search");
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> filterSections(newValue));
+        rootPane.getChildren().add(searchField);
+
         {
+            // VNCL appearance tokens
+            ComponentList appearanceList = new ComponentList();
+            {
+                appearanceList.getContent().add(createSliderRow(
+                        i18n("vncl.settings.corner_radius"),
+                        i18n("vncl.settings.corner_radius.subtitle"),
+                        VnclUiConfig.cornerRadiusProperty(),
+                        VnclUiConfig.MIN_CORNER_RADIUS,
+                        VnclUiConfig.MAX_CORNER_RADIUS,
+                        1.0,
+                        true));
+
+                appearanceList.getContent().add(createSliderRow(
+                        i18n("vncl.settings.density"),
+                        i18n("vncl.settings.density.subtitle"),
+                        VnclUiConfig.densityProperty(),
+                        VnclUiConfig.MIN_DENSITY,
+                        VnclUiConfig.MAX_DENSITY,
+                        0.05,
+                        false));
+
+                appearanceList.getContent().add(createSliderRow(
+                        i18n("vncl.settings.font_scale"),
+                        i18n("vncl.settings.font_scale.subtitle"),
+                        VnclUiConfig.fontScaleProperty(),
+                        VnclUiConfig.MIN_FONT_SCALE,
+                        VnclUiConfig.MAX_FONT_SCALE,
+                        0.01,
+                        false));
+
+                HBox presets = new HBox(8);
+                presets.setAlignment(Pos.CENTER_LEFT);
+                presets.getChildren().addAll(
+                        createPresetButton(i18n("vncl.settings.preset.default"), "default"),
+                        createPresetButton(i18n("vncl.settings.preset.compact"), "compact"),
+                        createPresetButton(i18n("vncl.settings.preset.relaxed"), "relaxed"),
+                        createPresetButton(i18n("vncl.settings.reset"), "reset"));
+                appearanceList.getContent().add(presets);
+            }
+            addSection(rootPane, i18n("vncl.settings.appearance"), appearanceList,
+                    "vncl appearance 外观 圆角 圆角半径 密度 间距 字号 预设");
+
             ComponentList updatePaneList = new ComponentList();
             {
                 ObjectProperty<UpdateChannel> updateChannel;
@@ -144,7 +206,7 @@ public final class SettingsPage extends ScrollPane {
                     updatePaneList.getContent().add(disableAutoShowUpdateDialogPane);
                 }
 
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("update")), updatePaneList);
+                addSection(rootPane, i18n("update"), updatePaneList, "update 更新 预览");
             }
 
             {
@@ -171,7 +233,7 @@ public final class SettingsPage extends ScrollPane {
 
                 }
 
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.language")), languagePaneList);
+                addSection(rootPane, i18n("settings.launcher.language"), languagePaneList, "language 语言");
             }
 
             {
@@ -229,7 +291,7 @@ public final class SettingsPage extends ScrollPane {
                     miscPaneList.getContent().add(debugPane);
                 }
 
-                rootPane.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.misc")), miscPaneList);
+                addSection(rootPane, i18n("settings.launcher.misc"), miscPaneList, "misc 其他 日志");
             }
         }
     }
@@ -384,5 +446,82 @@ public final class SettingsPage extends ScrollPane {
             trailing.setPickOnBounds(false);
             setTrailing(trailing);
         }
+    }
+
+    /// Adds a settings section and registers it for search filtering.
+    private void addSection(VBox rootPane, String title, Node body, String keywords) {
+        Node titleNode = ComponentList.createComponentListTitle(title);
+        sections.add(new Section(titleNode, body, title + " " + keywords));
+        rootPane.getChildren().addAll(titleNode, body);
+    }
+
+    /// Shows only sections matching the given query; an empty query restores every section.
+    private void filterSections(@Nullable String text) {
+        String query = text == null ? "" : text.trim().toLowerCase(Locale.ROOT);
+        for (Section section : sections) {
+            boolean visible = query.isEmpty() || section.matches(query);
+            section.titleNode().setVisible(visible);
+            section.titleNode().setManaged(visible);
+            section.body().setVisible(visible);
+            section.body().setManaged(visible);
+        }
+    }
+
+    /// Builds a settings row with a slider bound bidirectionally to the given token.
+    private static Node createSliderRow(String title, String subtitle, DoubleProperty property,
+                                        double min, double max, double blockIncrement, boolean pixels) {
+        LinePane row = new LinePane();
+        row.setTitle(title);
+        row.setSubtitle(subtitle);
+
+        Slider slider = new Slider(min, max, property.get());
+        slider.setPrefWidth(200);
+        slider.setBlockIncrement(blockIncrement);
+        slider.valueProperty().bindBidirectional(property);
+
+        Label valueLabel = new Label();
+        valueLabel.setMinWidth(Region.USE_PREF_SIZE);
+        valueLabel.textProperty().bind(Bindings.createStringBinding(() -> pixels
+                ? Math.round(property.get()) + " px"
+                : Math.round(property.get() * 100) + " %", property));
+
+        HBox box = new HBox(10, slider, valueLabel);
+        box.setAlignment(Pos.CENTER_RIGHT);
+        row.setRight(box);
+        return row;
+    }
+
+    /// Builds a preset button; `reset` restores the default appearance tokens.
+    private static Node createPresetButton(String text, String preset) {
+        JFXButton button = FXUtils.newBorderButton(text);
+        button.setOnAction(event -> {
+            if ("reset".equals(preset)) {
+                VnclUiConfig.reset();
+            } else {
+                VnclUiConfig.applyPreset(preset);
+            }
+        });
+        return button;
+    }
+
+    /// A settings section with its title node, body node and extra search keywords.
+    private record Section(Node titleNode, Node body, String keywords) {
+        /// Returns whether any visible text of this section matches the lowercase query.
+        boolean matches(String query) {
+            StringBuilder builder = new StringBuilder(keywords);
+            collectTexts(body, builder);
+            return builder.toString().toLowerCase(Locale.ROOT).contains(query);
+        }
+    }
+
+    /// Appends every user-visible text of the node tree for search matching.
+    private static void collectTexts(Node node, StringBuilder builder) {
+        if (node instanceof Labeled labeled && labeled.getText() != null)
+            builder.append(labeled.getText()).append(' ');
+        if (node instanceof LineComponent line && line.getTitle() != null)
+            builder.append(line.getTitle()).append(' ');
+        if (node instanceof Parent parent)
+            for (Node child : parent.getChildrenUnmodifiable())
+                collectTexts(child, builder);
     }
 }

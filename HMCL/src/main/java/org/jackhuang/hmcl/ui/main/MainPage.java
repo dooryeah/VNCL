@@ -315,7 +315,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
         detailLabel.getStyleClass().add("vncl-home-detail");
         FXUtils.onChangeAndOperate(currentGameProperty(), instance -> {
             if (instance == null) {
-                instanceLabel.setText(i18n("instance.launch.empty"));
+                instanceLabel.setText(i18n("vncl.home.empty"));
                 detailLabel.setText(i18n("instance.launch.empty.tooltip"));
             } else {
                 instanceLabel.setText(instance.getId().toString());
