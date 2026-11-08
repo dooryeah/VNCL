@@ -15,11 +15,14 @@ import org.jackhuang.hmcl.util.platform.windows.Shell32;
 import org.jackhuang.hmcl.util.platform.windows.WinTypes;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.OptionalLong;
 
 import static org.jackhuang.hmcl.util.logging.Logger.LOG;
@@ -75,7 +78,10 @@ public final class WindowsNativeUtils {
             return;
 
         String exePath = FileUtils.getAbsolutePath(thisJar);
-        String iconResource = exePath + ",0";
+        @Nullable Path iconFile = ensureIconFile();
+        // Prefer a content-addressed icon file: the shell caches AppUserModel icons by path, so a
+        // new hash makes the taskbar and Start menu pick up new artwork without a cache reset.
+        String iconResource = (iconFile != null ? FileUtils.getAbsolutePath(iconFile) : exePath) + ",0";
         String relaunchCommand = '"' + exePath + '"';
 
         stage.addEventFilter(WindowEvent.WINDOW_SHOWN, event -> {
@@ -92,6 +98,32 @@ public final class WindowsNativeUtils {
                 LOG.warning("Failed to clear AppUserModel relaunch properties", e);
             }
         });
+    }
+
+    /// Copies the embedded multi-size launcher icon into a content-addressed file.
+    ///
+    /// The shell caches AppUserModel icons by resource path; including a content hash in the file
+    /// name makes the taskbar and Start menu icons refresh whenever the launcher artwork changes.
+    ///
+    /// @return the extracted icon file, or null when the resource is unavailable
+    private static @Nullable Path ensureIconFile() {
+        try (InputStream input = WindowsNativeUtils.class.getResourceAsStream("/assets/img/icon.ico")) {
+            if (input == null)
+                return null;
+
+            byte[] bytes = input.readAllBytes();
+            String hash = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-1").digest(bytes)).substring(0, 16);
+            Path directory = Metadata.HMCL_USER_HOME.resolve("icons");
+            Files.createDirectories(directory);
+            Path file = directory.resolve("launcher-" + hash + ".ico");
+            if (!Files.isRegularFile(file))
+                Files.write(file, bytes);
+            return file;
+        } catch (Exception e) {
+            LOG.warning("Failed to prepare the launcher icon", e);
+            return null;
+        }
     }
 
     /// Writes AppUserModel relaunch properties for the current native window of `stage`.
