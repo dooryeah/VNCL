@@ -19,12 +19,12 @@ public final class Metadata {
     private Metadata() {
     }
 
-    public static final String NAME = "HMCL";
-    public static final String FULL_NAME = "Hello Minecraft! Launcher";
+    public static final String NAME = "VNCL";
+    public static final String FULL_NAME = "VNCL Launcher";
     public static final String VERSION = System.getProperty("hmcl.version.override", JarUtils.getAttribute("hmcl.version", "@develop@"));
 
     /// Explicit Application User Model ID used for Windows taskbar grouping and pinning.
-    public static final String WINDOWS_APP_USER_MODEL_ID = "org.jackhuang.hmcl";
+    public static final String WINDOWS_APP_USER_MODEL_ID = "org.vncl.launcher";
 
     public static final String TITLE = NAME + " " + VERSION;
 
@@ -35,16 +35,19 @@ public final class Metadata {
     public static final int MINIMUM_SUPPORTED_JAVA_VERSION = 17;
     public static final int RECOMMENDED_JAVA_VERSION = 21;
 
-    public static final String PUBLISH_URL = "https://hmcl.huangyuhui.net";
-    public static final String REPOSITORY_URL = "https://github.com/HMCL-dev/HMCL";
-    public static final String HMCL_UPDATE_URL = System.getProperty("hmcl.update_source.override", PUBLISH_URL + "/api/update_link");
-    public static final String MANUAL_UPDATE_URL = "https://github.com/HMCL-dev/HMCL/releases";
+    /// Official site of this build. Replace it once the project is hosted publicly.
+    public static final String PUBLISH_URL = "https://github.com/VNCL-Launcher/VNCL";
+    public static final String REPOSITORY_URL = "https://github.com/VNCL-Launcher/VNCL";
+    /// Empty means the launcher never queries an update server.
+    /// Point it at the VNCL update endpoint (or set `-Dhmcl.update_source.override=<url>`) when updates are ready.
+    public static final String HMCL_UPDATE_URL = System.getProperty("hmcl.update_source.override", "");
+    public static final String MANUAL_UPDATE_URL = REPOSITORY_URL + "/releases";
 
-    public static final String DOCS_URL = "https://docs.hmcl.net";
-    public static final String CONTACT_URL = DOCS_URL + "/help.html";
-    public static final String CHANGELOG_URL = DOCS_URL + "/changelog/";
-    public static final String EULA_URL = DOCS_URL + "/eula/hmcl.html";
-    public static final String GROUPS_URL = "https://www.bilibili.com/opus/905435541874409529";
+    public static final String DOCS_URL = REPOSITORY_URL + "/wiki";
+    public static final String CONTACT_URL = REPOSITORY_URL + "/issues";
+    public static final String CHANGELOG_URL = REPOSITORY_URL + "/releases";
+    public static final String EULA_URL = REPOSITORY_URL + "/blob/main/docs/EULA.md";
+    public static final String GROUPS_URL = REPOSITORY_URL;
 
     public static final String BUILD_CHANNEL = JarUtils.getAttribute("hmcl.version.type", "nightly");
     public static final String GITHUB_SHA = JarUtils.getAttribute("hmcl.version.hash", null);
@@ -61,12 +64,12 @@ public final class Metadata {
             if (OperatingSystem.CURRENT_OS.isLinuxOrBSD()) {
                 String xdgData = System.getenv("XDG_DATA_HOME");
                 if (StringUtils.isNotBlank(xdgData)) {
-                    HMCL_USER_HOME = Path.of(xdgData, "hmcl").toAbsolutePath().normalize();
+                    HMCL_USER_HOME = Path.of(xdgData, "vncl").toAbsolutePath().normalize();
                 } else {
-                    HMCL_USER_HOME = Path.of(System.getProperty("user.home"), ".local", "share", "hmcl").toAbsolutePath().normalize();
+                    HMCL_USER_HOME = Path.of(System.getProperty("user.home"), ".local", "share", "vncl").toAbsolutePath().normalize();
                 }
             } else {
-                HMCL_USER_HOME = OperatingSystem.getWorkingDirectory("hmcl");
+                HMCL_USER_HOME = OperatingSystem.getWorkingDirectory("vncl");
             }
         } else {
             HMCL_USER_HOME = Path.of(hmclHome).toAbsolutePath().normalize();
@@ -75,7 +78,7 @@ public final class Metadata {
         String hmclCurrentDir = System.getProperty("hmcl.dir", System.getenv("HMCL_LOCAL_HOME"));
         HMCL_LOCAL_HOME = StringUtils.isNotBlank(hmclCurrentDir)
                 ? Path.of(hmclCurrentDir).toAbsolutePath().normalize()
-                : CURRENT_DIRECTORY.resolve(".hmcl");
+                : CURRENT_DIRECTORY.resolve(".vncl");
 
         String hmclDependencies = System.getProperty("hmcl.dependencies.dir", System.getenv("HMCL_DEPENDENCIES_DIR"));
         DEPENDENCIES_DIRECTORY = StringUtils.isNotBlank(hmclDependencies)

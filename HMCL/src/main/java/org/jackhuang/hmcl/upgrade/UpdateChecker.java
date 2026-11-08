@@ -43,6 +43,9 @@ public final class UpdateChecker {
     private static final ReadOnlyObjectWrapper<@Nullable Throwable> error = new ReadOnlyObjectWrapper<>();
 
     public static void init() {
+        // VNCL: no update endpoint is configured yet, so never contact an upstream server.
+        if (Metadata.HMCL_UPDATE_URL.isBlank())
+            return;
         requestCheckUpdate(UpdateChannel.getChannel(), settings().acceptPreviewUpdateProperty().get());
     }
 
@@ -93,6 +96,9 @@ public final class UpdateChecker {
     }
 
     public static void requestCheckUpdate(UpdateChannel channel, boolean preview) {
+        // VNCL: keep the checker inert until a VNCL update endpoint exists.
+        if (Metadata.HMCL_UPDATE_URL.isBlank())
+            return;
         Platform.runLater(() -> {
             if (isCheckingUpdate())
                 return;
