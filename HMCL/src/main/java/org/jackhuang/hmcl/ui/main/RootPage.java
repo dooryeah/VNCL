@@ -113,7 +113,7 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 .add(downloadItem)
                 .startCategory(i18n("settings.launcher.general").toUpperCase(Locale.ROOT))
                 .add(launcherSettingsItem)
-                .addNavigationDrawerItem(i18n("contact.chat"), SVG.CHAT, () -> {
+                .addNavigationDrawerItem(i18n("contact.feedback"), SVG.CHAT, () -> {
                     Controllers.getSettingsPage().showFeedback();
                     Controllers.navigate(Controllers.getSettingsPage());
                 });

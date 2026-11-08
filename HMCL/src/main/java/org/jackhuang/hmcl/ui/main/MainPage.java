@@ -24,6 +24,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
@@ -211,7 +212,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
             return Lang.indexWhere(list, instance -> instance.getId().equals(currentId));
         }, instance -> instance.getRepository().setSelectedInstance(instance));
 
-        StackPane.setAlignment(launchPane, Pos.BOTTOM_RIGHT);
+        StackPane.setAlignment(launchPane, Pos.CENTER_LEFT);
         {
             JFXButton launchButton = new JFXButton();
             launchButton.getStyleClass().add("launch-button");
@@ -301,7 +302,31 @@ public final class MainPage extends StackPane implements DecoratorPage {
             launchPane.getChildren().setAll(launchButton, menuButton);
         }
 
-        getChildren().addAll(updatePane, launchPane);
+        // VNCL: minimal home — a single card with the selected instance and the launch action.
+        VBox homeCard = new VBox(6);
+        homeCard.getStyleClass().add("vncl-home-card");
+        homeCard.setAlignment(Pos.CENTER_LEFT);
+        homeCard.setMaxWidth(420);
+        homeCard.setMaxHeight(Region.USE_PREF_SIZE);
+
+        Label instanceLabel = new Label();
+        instanceLabel.getStyleClass().add("vncl-home-instance");
+        Label detailLabel = new Label();
+        detailLabel.getStyleClass().add("vncl-home-detail");
+        FXUtils.onChangeAndOperate(currentGameProperty(), instance -> {
+            if (instance == null) {
+                instanceLabel.setText(i18n("instance.launch.empty"));
+                detailLabel.setText(i18n("instance.launch.empty.tooltip"));
+            } else {
+                instanceLabel.setText(instance.getId().toString());
+                detailLabel.setText("Minecraft " + instance.getVersion());
+            }
+        });
+
+        VBox.setMargin(launchPane, new Insets(18, 0, 0, 0));
+        homeCard.getChildren().setAll(instanceLabel, detailLabel, launchPane);
+        StackPane.setAlignment(homeCard, Pos.CENTER);
+        getChildren().add(homeCard);
 
     }
 

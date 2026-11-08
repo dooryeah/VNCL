@@ -480,6 +480,30 @@
 
 /*******************************************************************************
  *                                                                             *
+ * VNCL Minimal Home                                                           *
+ *                                                                             *
+ ******************************************************************************/
+
+.vncl-home-card {
+    -fx-padding: 26px 30px;
+    -fx-background-color: -monet-surface-container-low;
+    -fx-background-radius: 14px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 18, 0.25, 0, 6);
+}
+
+.vncl-home-instance {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.vncl-home-detail {
+    -fx-font-size: 12px;
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+/*******************************************************************************
+ *                                                                             *
  * JFX Tab Pane                                                                *
  *                                                                             *
  ******************************************************************************/
