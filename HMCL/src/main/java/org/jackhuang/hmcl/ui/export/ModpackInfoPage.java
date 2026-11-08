@@ -1,0 +1,377 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021 The HMCL Authors
+// SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
+package org.jackhuang.hmcl.ui.export;
+
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXSlider;
+import com.jfoenix.controls.JFXTextArea;
+import com.jfoenix.controls.JFXTextField;
+import com.jfoenix.validation.base.ValidatorBase;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import org.jackhuang.hmcl.Metadata;
+import org.jackhuang.hmcl.auth.Account;
+import org.jackhuang.hmcl.auth.authlibinjector.AuthlibInjectorServer;
+import org.jackhuang.hmcl.game.HMCLGameInstance;
+import org.jackhuang.hmcl.modpack.ModpackExportInfo;
+import org.jackhuang.hmcl.modpack.mcbbs.McbbsModpackManifest;
+import org.jackhuang.hmcl.setting.Accounts;
+import org.jackhuang.hmcl.setting.GameSettings;
+import org.jackhuang.hmcl.ui.FXUtils;
+import org.jackhuang.hmcl.ui.construct.*;
+import org.jackhuang.hmcl.ui.wizard.WizardController;
+import org.jackhuang.hmcl.ui.wizard.WizardPage;
+import org.jackhuang.hmcl.util.SettingsMap;
+import org.jackhuang.hmcl.util.StringUtils;
+import org.jackhuang.hmcl.util.io.JarUtils;
+import org.jackhuang.hmcl.util.platform.SystemInfo;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.jackhuang.hmcl.setting.SettingsManager.getAuthlibInjectorServers;
+import static org.jackhuang.hmcl.ui.export.ModpackTypeSelectionPage.*;
+import static org.jackhuang.hmcl.util.DataSizeUnit.MEGABYTES;
+import static org.jackhuang.hmcl.util.i18n.I18n.i18n;
+
+public final class ModpackInfoPage extends Control implements WizardPage {
+    private final WizardController controller;
+    private final HMCLGameInstance gameInstance;
+    private final ModpackExportInfo.Options options;
+    private final boolean canIncludeLauncher;
+
+    private final ModpackExportInfo exportInfo = new ModpackExportInfo();
+
+    private final SimpleStringProperty name = new SimpleStringProperty("");
+    private final SimpleStringProperty author = new SimpleStringProperty("");
+    private final SimpleStringProperty version = new SimpleStringProperty("1.0");
+    private final SimpleStringProperty description = new SimpleStringProperty("");
+    private final SimpleStringProperty url = new SimpleStringProperty("");
+    private final SimpleBooleanProperty forceUpdate = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty packWithLauncher = new SimpleBooleanProperty();
+    private final SimpleStringProperty fileApi = new SimpleStringProperty("");
+    private final SimpleIntegerProperty minMemory = new SimpleIntegerProperty(0);
+    private final SimpleStringProperty authlibInjectorServer = new SimpleStringProperty();
+    private final SimpleStringProperty launchArguments = new SimpleStringProperty("");
+    private final SimpleStringProperty javaArguments = new SimpleStringProperty("");
+    private final SimpleStringProperty mcbbsThreadId = new SimpleStringProperty("");
+    private final SimpleBooleanProperty noCreateRemoteFiles = new SimpleBooleanProperty();
+    private final SimpleBooleanProperty skipCurseForgeRemoteFiles = new SimpleBooleanProperty();
+
+    public ModpackInfoPage(WizardController controller, HMCLGameInstance gameInstance) {
+        this.controller = controller;
+        this.gameInstance = gameInstance;
+        this.options = controller.getSettings().get(MODPACK_INFO_OPTION);
+
+        if (this.options == null)
+            throw new IllegalArgumentException("Settings.MODPACK_INFO_OPTION is required");
+
+        name.set(gameInstance.getId().toString());
+        author.set(Optional.ofNullable(Accounts.getSelectedAccount()).map(Account::getProfileName).orElse(""));
+
+        GameSettings.Effective versionSetting = gameInstance.getEffectiveSettings();
+        minMemory.set(Optional.ofNullable(versionSetting.getInheritable(GameSettings::minMemoryProperty)).orElse(0));
+        launchArguments.set(versionSetting.getInheritable(GameSettings::gameArgumentsProperty));
+        javaArguments.set(versionSetting.getInheritable(GameSettings::jvmOptionsProperty));
+
+        canIncludeLauncher = JarUtils.thisJarPath() != null;
+    }
+
+    private void onNext() {
+        exportInfo.setName(name.get())
+                .setFileApi(fileApi.get())
+                .setVersion(version.get())
+                .setAuthor(author.get())
+                .setDescription(description.get())
+                .setUrl(url.get())
+                .setForceUpdate(forceUpdate.get())
+                .setPackWithLauncher(packWithLauncher.get())
+                .setMinMemory(minMemory.get())
+                .setLaunchArguments(launchArguments.get())
+                .setJavaArguments(javaArguments.get())
+                .setAuthlibInjectorServer(authlibInjectorServer.get())
+                .setNoCreateRemoteFiles(noCreateRemoteFiles.get())
+                .setSkipCurseForgeRemoteFiles(skipCurseForgeRemoteFiles.get());
+
+        if (StringUtils.isNotBlank(mcbbsThreadId.get())) {
+            exportInfo.setOrigins(Collections.singletonList(new McbbsModpackManifest.Origin(
+                    "mcbbs", Integer.parseInt(mcbbsThreadId.get())
+            )));
+        }
+
+        controller.getSettings().put(MODPACK_INFO, exportInfo);
+        controller.onNext();
+    }
+
+    @Override
+    public void cleanup(SettingsMap settings) {
+        controller.getSettings().remove(MODPACK_INFO);
+    }
+
+    @Override
+    public String getTitle() {
+        return i18n("modpack.wizard.step.1.title");
+    }
+
+    @Override
+    protected Skin<?> createDefaultSkin() {
+        return new ModpackInfoPageSkin(this);
+    }
+
+    public static final SettingsMap.Key<ModpackExportInfo> MODPACK_INFO = new SettingsMap.Key<>("modpack.info");
+    public static final SettingsMap.Key<ModpackExportInfo.Options> MODPACK_INFO_OPTION = new SettingsMap.Key<>("modpack.info.option");
+
+    public static class ModpackInfoPageSkin extends SkinBase<ModpackInfoPage> {
+        private final List<JFXTextField> validatingFields = new ArrayList<>();
+
+        public ModpackInfoPageSkin(ModpackInfoPage skinnable) {
+            super(skinnable);
+
+            Insets componentListMargin = new Insets(16, 0, 16, 0);
+
+            ScrollPane scroll = new ScrollPane();
+            scroll.setFitToWidth(true);
+            scroll.setFitToHeight(true);
+            getChildren().setAll(scroll);
+
+
+            {
+                BorderPane borderPane = new BorderPane();
+                borderPane.setStyle("-fx-padding: 16;");
+                scroll.setContent(borderPane);
+
+                if (MODPACK_TYPE_SERVER.equals(skinnable.controller.getSettings().get(MODPACK_TYPE))) {
+                    Hyperlink hyperlink = new Hyperlink(i18n("modpack.wizard.step.initialization.server"));
+                    hyperlink.setOnAction(e -> FXUtils.openLink(Metadata.DOCS_URL + "/modpack/serverpack.html"));
+                    borderPane.setTop(hyperlink);
+                }
+                if (MODPACK_TYPE_MODRINTH.equals(skinnable.controller.getSettings().get(MODPACK_TYPE))) {
+                    HintPane pane = new HintPane(MessageDialogPane.MessageType.INFO);
+                    pane.setText(i18n("modpack.wizard.step.initialization.modrinth.info"));
+                    borderPane.setTop(pane);
+                } else {
+                    HintPane pane = new HintPane(MessageDialogPane.MessageType.INFO);
+                    pane.setText(i18n("modpack.wizard.step.initialization.warning"));
+                    borderPane.setTop(pane);
+                }
+
+                {
+                    ComponentList list = new ComponentList();
+                    BorderPane.setMargin(list, componentListMargin);
+                    borderPane.setCenter(list);
+
+                    var instanceNamePane = new LineTextPane();
+                    {
+                        instanceNamePane.setTitle(i18n("modpack.wizard.step.initialization.exported_version"));
+                        instanceNamePane.setText(skinnable.gameInstance.getId().toString());
+
+                        list.getContent().add(instanceNamePane);
+                    }
+
+
+                    list.getContent().addAll(
+                            createTextFieldLinePane(i18n("modpack.name"), skinnable.name, new RequiredValidator()),
+                            createTextFieldLinePane(i18n("archive.version"), skinnable.version, new RequiredValidator())
+                    );
+
+                    if (skinnable.options.isRequireAuthor()) {
+                        list.getContent().add(
+                                createTextFieldLinePane(i18n("archive.author"), skinnable.author, new RequiredValidator())
+                        );
+                    }
+
+                    if (skinnable.options.isRequireFileApi()) {
+                        list.getContent().add(createTextFieldLinePane(
+                                i18n("modpack.file_api"), skinnable.fileApi,
+                                skinnable.options.isValidateFileApi() ? new RequiredValidator() : null,
+                                new URLValidator(true)
+                        ));
+                    }
+
+                    if (skinnable.options.isRequireLaunchArguments()) {
+                        list.getContent().add(createTextFieldLinePane(
+                                i18n("settings.advanced.minecraft_arguments"), skinnable.launchArguments
+                        ));
+                    }
+
+                    if (skinnable.options.isRequireJavaArguments()) {
+                        list.getContent().add(createTextFieldLinePane(
+                                i18n("settings.advanced.jvm_args"), skinnable.javaArguments
+                        ));
+                    }
+
+                    if (skinnable.options.isRequireUrl()) {
+                        list.getContent().add(createTextFieldLinePane(
+                                i18n("modpack.origin.url"), skinnable.url
+                        ));
+                    }
+
+                    if (skinnable.options.isRequireOrigins()) {
+                        list.getContent().add(createTextFieldLinePane(
+                                i18n("modpack.origin.mcbbs"), skinnable.mcbbsThreadId,
+                                new NumberValidator(i18n("input.number"), true)
+                        ));
+                    }
+
+                    if (skinnable.options.isRequireMinMemory()) {
+                        VBox pane = new VBox();
+
+                        Label title = new Label(i18n("settings.memory"));
+                        VBox.setMargin(title, new Insets(0, 0, 8, 0));
+
+                        HBox lowerBoundPane = new HBox(8);
+                        lowerBoundPane.setAlignment(Pos.CENTER);
+                        VBox.setMargin(lowerBoundPane, new Insets(0, 0, 0, 16));
+
+                        {
+                            Label label = new Label(i18n("settings.memory.lower_bound"));
+
+                            JFXSlider slider = new JFXSlider(0, 1, 0);
+                            HBox.setMargin(slider, new Insets(0, 0, 0, 8));
+                            HBox.setHgrow(slider, Priority.ALWAYS);
+                            slider.setValueFactory(self -> Bindings.createStringBinding(() -> (int) (self.getValue() * 100) + "%", self.valueProperty()));
+                            AtomicBoolean changedByTextField = new AtomicBoolean(false);
+                            FXUtils.onChangeAndOperate(skinnable.minMemory, minMemory -> {
+                                changedByTextField.set(true);
+                                slider.setValue(minMemory.intValue() * 1.0 / MEGABYTES.convertFromBytes(SystemInfo.getTotalMemorySize()));
+                                changedByTextField.set(false);
+                            });
+                            slider.valueProperty().addListener((value, oldVal, newVal) -> {
+                                if (changedByTextField.get()) return;
+                                skinnable.minMemory.set((int) (value.getValue().doubleValue() * MEGABYTES.convertFromBytes(SystemInfo.getTotalMemorySize())));
+                            });
+
+                            JFXTextField txtMinMemory = new JFXTextField();
+                            FXUtils.bindInt(txtMinMemory, skinnable.minMemory);
+                            txtMinMemory.getValidators().add(new NumberValidator(i18n("input.number"), false));
+                            FXUtils.setLimitWidth(txtMinMemory, 60);
+                            validatingFields.add(txtMinMemory);
+
+                            lowerBoundPane.getChildren().setAll(label, slider, txtMinMemory, new Label("MiB"));
+                        }
+
+                        pane.getChildren().setAll(title, lowerBoundPane);
+                        list.getContent().add(pane);
+                    }
+
+                    {
+                        VBox pane = new VBox(8);
+                        JFXTextArea area = new JFXTextArea();
+                        area.textProperty().bindBidirectional(skinnable.description);
+                        area.setMinHeight(400);
+                        pane.getChildren().setAll(new Label(i18n("modpack.desc")), area);
+                        list.getContent().add(pane);
+                    }
+
+                    if (skinnable.options.isRequireAuthlibInjectorServer()) {
+                        var serversSelectButton = new LineSelectButton<AuthlibInjectorServer>();
+                        serversSelectButton.setTitle(i18n("account.injector.server"));
+                        serversSelectButton.setNullSafeConverter(AuthlibInjectorServer::getName);
+                        serversSelectButton.setDescriptionConverter(AuthlibInjectorServer::getUrl);
+                        serversSelectButton.itemsProperty().set(getAuthlibInjectorServers());
+
+                        skinnable.authlibInjectorServer.bind(Bindings.createStringBinding(() -> {
+                            AuthlibInjectorServer selected = serversSelectButton.getValue();
+                            return selected != null ? selected.getUrl() : null;
+                        }, serversSelectButton.valueProperty()));
+
+                        list.getContent().add(serversSelectButton);
+                    }
+
+                    if (skinnable.options.isRequireForceUpdate()) {
+                        var requireForceUpdateButton = new LineSwitch();
+                        requireForceUpdateButton.setTitle(i18n("modpack.wizard.step.initialization.force_update"));
+                        requireForceUpdateButton.selectedProperty().bindBidirectional(skinnable.forceUpdate);
+
+                        list.getContent().add(requireForceUpdateButton);
+                    }
+
+                    {
+                        var canIncludeLauncherButton = new LineSwitch();
+                        canIncludeLauncherButton.setTitle(i18n("modpack.wizard.step.initialization.include_launcher"));
+                        canIncludeLauncherButton.setDisable(!skinnable.canIncludeLauncher);
+                        canIncludeLauncherButton.selectedProperty().bindBidirectional(skinnable.packWithLauncher);
+
+                        list.getContent().add(canIncludeLauncherButton);
+                    }
+
+                    if (skinnable.options.isRequireNoCreateRemoteFiles()) {
+                        var requireNoCreateRemoteFilesButton = new LineSwitch();
+                        requireNoCreateRemoteFilesButton.setTitle(i18n("modpack.wizard.step.initialization.no_create_remote_files"));
+                        requireNoCreateRemoteFilesButton.selectedProperty().bindBidirectional(skinnable.noCreateRemoteFiles);
+
+                        list.getContent().add(requireNoCreateRemoteFilesButton);
+                    }
+
+                    if (skinnable.options.isRequireSkipCurseForgeRemoteFiles()) {
+                        var skipCurseForgeRemoteFilesButton = new LineSwitch();
+                        skipCurseForgeRemoteFilesButton.setTitle(i18n("modpack.wizard.step.initialization.skip_curseforge_remote_files"));
+                        skipCurseForgeRemoteFilesButton.selectedProperty().bindBidirectional(skinnable.skipCurseForgeRemoteFiles);
+
+                        list.getContent().add(skipCurseForgeRemoteFilesButton);
+                    }
+                }
+
+                {
+                    HBox hbox = new HBox();
+                    hbox.setAlignment(Pos.CENTER_RIGHT);
+                    borderPane.setBottom(hbox);
+
+                    JFXButton nextButton = FXUtils.newRaisedButton(i18n("wizard.next"));
+                    nextButton.setOnAction(e -> skinnable.onNext());
+                    nextButton.setPrefWidth(100);
+                    nextButton.setPrefHeight(40);
+                    nextButton.disableProperty().bind(
+                            // Disable nextButton if any text of JFXTextFields in validatingFields does not fulfill
+                            // our requirement.
+                            Bindings.createBooleanBinding(() -> validatingFields.stream()
+                                            .map(field -> !field.validate())
+                                            .reduce(false, (left, right) -> left || right),
+                                    validatingFields.stream().map(JFXTextField::textProperty).toArray(StringProperty[]::new)));
+                    hbox.getChildren().add(nextButton);
+                }
+            }
+
+            FXUtils.smoothScrolling(scroll);
+        }
+
+        private LinePane createTextFieldLinePane(String title, StringProperty property, ValidatorBase... validators) {
+            LinePane linePane = new LinePane();
+            JFXTextField textField = new JFXTextField();
+            textField.setMinWidth(500);
+
+            linePane.setTitle(title);
+            linePane.setRight(textField);
+            textField.textProperty().bindBidirectional(property);
+
+            boolean needValidation = false;
+            if (validators != null) {
+                for (ValidatorBase validator : validators) {
+                    if (validator != null) {
+                        needValidation = true;
+                        textField.getValidators().add(validator);
+                    }
+                }
+            }
+            if (needValidation) {
+                FXUtils.setValidateWhileTextChanged(textField, true);
+                validatingFields.add(textField);
+            }
+
+            return linePane;
+        }
+    }
+}
