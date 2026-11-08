@@ -8,10 +8,17 @@ Builds the VNCL launcher executable and applies the VNCL icon.
 Runs the Gradle executable task, copies the result into dist/, then patches the
 icon resources using scripts/set-exe-icon.ps1. The icon step is required because
 the launcher exe is the upstream HMCLauncher stub with the jar appended.
+
+Pass -MicrosoftAuthId to embed the Azure application (client) ID that enables
+Microsoft account login.
+
+.PARAMETER MicrosoftAuthId
+Optional Azure application (client) ID written to assets/hmcl.properties.
 #>
 param(
     [string]$JavaHome = 'C:\Program Files\Java\jdk-21',
-    [string]$GradleTask = ':HMCL:makeExecutables'
+    [string]$GradleTask = ':HMCL:makeExecutables',
+    [string]$MicrosoftAuthId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,6 +27,9 @@ Push-Location $root
 try {
     if (Test-Path $JavaHome) {
         $env:JAVA_HOME = $JavaHome
+    }
+    if ($MicrosoftAuthId) {
+        $env:MICROSOFT_AUTH_ID = $MicrosoftAuthId
     }
 
     & .\gradlew.bat $GradleTask --no-daemon --console=plain

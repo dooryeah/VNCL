@@ -95,3 +95,37 @@ Windows 会按资源路径缓存 AppUserModel 图标。启动器现在会把内�
 `%APPDATA%\.vncl\icons\launcher-<内容哈希>.ico`，并以该路径作为 `RelaunchIconResource`；
 图标内容变化时文件哈希随之变化，任务栏/开始菜单会使用新图标而不是旧缓存。
 若资源管理器仍显示旧图标，可执行 `ie4uinit.exe -show` 刷新图标缓存，或重启资源管理器（`explorer.exe`）强制重读。
+
+## 11. 启用微软账户登录
+
+微软登录默认关闭：`assets/hmcl.properties` 里的 `hmcl.microsoft.auth.id` 为空时，账户页的微软登录按钮会被禁用（提示“非官方构建”）。
+
+### 11.1 注册 Azure 应用（免费，个人 Microsoft 账户即可）
+
+1. 打开 https://portal.azure.com → Microsoft Entra ID → 应用注册 → 新注册
+2. 名称填 `VNCL`；受支持的账户类型选 **仅个人 Microsoft 账户**
+3. 重定向 URI：平台选 **移动和桌面应用程序**，填 `http://localhost/auth-response`
+   （启动器实际用 `http://localhost:29111~29115/auth-response`，Microsoft 对 localhost 忽略端口）
+4. 创建后复制 **应用程序(客户端) ID**
+5. 身份验证 → **允许公共客户端流**：是（扫码/设备代码登录需要）
+6. API 权限 → 添加权限 → 我的组织使用的 API → 搜索 Xbox Live → 委托权限 `XboxLive.signin`
+
+### 11.2 构建时注入
+
+```powershell
+.\scripts\build-dist.ps1 -MicrosoftAuthId "<客户端ID>"
+```
+
+或手动：
+
+```powershell
+$env:MICROSOFT_AUTH_ID = "<客户端ID>"
+.\gradlew.bat :HMCL:makeExecutables --no-daemon
+```
+
+### 11.3 临时验证（不重建 exe）
+
+- 直接跑 jar：`java -Dhmcl.microsoft.auth.id=<客户端ID> -jar VNCL-0.1.SNAPSHOT.jar`
+- 跑 exe：先设置环境变量 `JAVA_TOOL_OPTIONS=-Dhmcl.microsoft.auth.id=<客户端ID>`，再启动 `VNCL.exe`（只影响当前会话）
+
+说明：Client ID 是公开标识，不是密钥；不要复用 HMCL 官方的 App ID。代码请求的 scope 为 `XboxLive.signin offline_access`。
