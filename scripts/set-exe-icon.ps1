@@ -201,7 +201,9 @@ try {
     Remove-Item -LiteralPath $tempStub -Force -ErrorAction SilentlyContinue
 }
 
-Copy-Item -LiteralPath $exe -Destination "$exe.bak" -Force
+# Back up outside the distribution folder so builds never ship a stale .bak copy.
+$backup = Join-Path ([IO.Path]::GetTempPath()) ((Split-Path -Leaf $exe) + '.iconbak')
+Copy-Item -LiteralPath $exe -Destination $backup -Force
 
 $output = New-Object byte[] ($patchedStub.Length + $jarBytes.Length)
 [Array]::Copy($patchedStub, 0, $output, 0, $patchedStub.Length)

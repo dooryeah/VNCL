@@ -94,4 +94,4 @@ Copy-Item HMCL\build\libs\VNCL-0.1.SNAPSHOT.exe dist\VNCL.exe -Force
 Windows 会按资源路径缓存 AppUserModel 图标。启动器现在会把内置的 `assets/img/icon.ico` 释放到
 `%APPDATA%\.vncl\icons\launcher-<内容哈希>.ico`，并以该路径作为 `RelaunchIconResource`；
 图标内容变化时文件哈希随之变化，任务栏/开始菜单会使用新图标而不是旧缓存。
-若资源管理器仍显示旧图标，可执行 `ie4uinit.exe -show` 刷新图标缓存。
+若资源管理器仍显示旧图标，可执行 `ie4uinit.exe -show` 刷新图标缓存，或重启资源管理器（`explorer.exe`）强制重读。
