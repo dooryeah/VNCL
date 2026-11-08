@@ -55,10 +55,15 @@ public final class AboutPage extends SpinnerPane {
             var launcher = LineButton.createExternalLinkButton(Metadata.REPOSITORY_URL);
             launcher.setLargeTitle(true);
             launcher.setLeading(FXUtils.newBuiltinImage("/assets/img/icon.png"));
-            launcher.setTitle("Hello Minecraft! Launcher");
+            launcher.setTitle(Metadata.FULL_NAME);
             launcher.setSubtitle(Metadata.VERSION);
 
-            about.getContent().setAll(launcher);
+            // VNCL: make the upstream lineage and license explicit on the about page.
+            var upstream = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL");
+            upstream.setTitle(i18n("vncl.about.upstream"));
+            upstream.setSubtitle(i18n("vncl.about.upstream.subtitle"));
+
+            about.getContent().setAll(launcher, upstream);
         }
 
         ComponentList systemInfo = new ComponentList();
