@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
@@ -17,6 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.jackhuang.hmcl.Metadata;
 import org.jetbrains.annotations.NotNullByDefault;
@@ -34,8 +34,9 @@ import static org.jackhuang.hmcl.util.logging.Logger.LOG;
 
 /// Plays the configurable VNCL startup animation over the launcher window.
 ///
-/// The video is shown in a window-sized overlay that covers the title bar as well. Any key press,
-/// a mouse click, the end of the video, or the timeout closes it and reveals the launcher.
+/// The video is shown in a window-sized overlay that covers the title bar as well. Playback starts
+/// only after the stage has been shown, so slow startup never lets the video end off-screen. A key
+/// press, the end of the video, or the timeout closes the overlay and reveals the launcher.
 @NotNullByDefault
 public final class VnclStartupAnimation {
 
@@ -44,8 +45,16 @@ public final class VnclStartupAnimation {
 
     /// Hard limit so a broken media file can never keep the launcher hidden.
     private static final Duration TIMEOUT = Duration.seconds(20);
+
     /// Fade-out duration when the overlay is dismissed.
     private static final Duration FADE = Duration.millis(250);
+
+    /// Keys pressed within this grace period are ignored, so a carried-over key from launching
+    /// the launcher cannot skip the animation before the first frame is visible.
+    private static final long KEY_GRACE_NANOS = 300_000_000L;
+
+    /// The overlay currently on screen, if any; prevents stacking multiple animations.
+    private static @Nullable Overlay current;
 
     /// Returns the directory scanned for startup videos (next to the launcher executable).
     ///
@@ -53,23 +62,6 @@ public final class VnclStartupAnimation {
     /// the code source instead of the process working directory.
     public static Path videosDirectory() {
         return launcherDirectory().resolve("videos");
-    }
-
-    /// Returns the directory that contains the launcher jar or exe.
-    private static Path launcherDirectory() {
-        try {
-            var codeSource = VnclStartupAnimation.class.getProtectionDomain().getCodeSource();
-            if (codeSource != null) {
-                Path path = Path.of(codeSource.getLocation().toURI());
-                Path directory = Files.isDirectory(path) ? path : path.getParent();
-                if (directory != null) {
-                    return directory;
-                }
-            }
-        } catch (Exception exception) {
-            LOG.warning("Failed to resolve the launcher directory", exception);
-        }
-        return Metadata.CURRENT_DIRECTORY;
     }
 
     /// Returns every supported video file in [#videosDirectory()], sorted by name.
@@ -104,27 +96,65 @@ public final class VnclStartupAnimation {
         return Files.isRegularFile(file) ? file : null;
     }
 
-    /// Installs the animation when it is enabled and a valid video is configured.
-    public static void installIfEnabled(StackPane root) {
+    /// Plays the startup animation when it is enabled and a valid video is configured.
+    ///
+    /// Call this after the main stage has been shown; starting earlier can let the video play
+    /// before the window becomes visible, which looked like a skipped animation.
+    public static void playOnStartup(Stage stage) {
         if (!VnclUiConfig.startupAnimationEnabledProperty().get()) {
             return;
         }
         Path video = configuredVideo();
         if (video == null) {
+            LOG.info("Startup animation skipped: no playable video configured");
             return;
         }
-        show(root, video);
+        Scene scene = stage.getScene();
+        if (scene == null || !(scene.getRoot() instanceof Pane pane)) {
+            LOG.warning("Startup animation skipped: the main window is not available yet");
+            return;
+        }
+        if (current != null) {
+            return;
+        }
+        startAnimation(pane, scene, video);
     }
 
-    /// Plays the given video over the root pane; used by both startup and the preview button.
+    /// Plays the given video over the root pane; used by the settings preview button.
     public static void show(Pane root, Path video) {
+        if (current != null) {
+            return;
+        }
+        startAnimation(root, root.getScene(), video);
+    }
+
+    private static void startAnimation(Pane root, @Nullable Scene scene, Path video) {
         try {
             Overlay overlay = new Overlay(root, video);
             overlay.install();
-            Platform.runLater(overlay::start);
+            current = overlay;
+            LOG.info("Startup animation: playing " + video.getFileName());
+            // Defer one pulse so the window has painted its first frame before video playback starts.
+            Platform.runLater(() -> overlay.start(scene));
         } catch (Throwable exception) {
             LOG.warning("Failed to start the startup animation", exception);
         }
+    }
+
+    private static Path launcherDirectory() {
+        try {
+            var codeSource = VnclStartupAnimation.class.getProtectionDomain().getCodeSource();
+            if (codeSource != null) {
+                Path path = Path.of(codeSource.getLocation().toURI());
+                Path directory = Files.isDirectory(path) ? path : path.getParent();
+                if (directory != null) {
+                    return directory;
+                }
+            }
+        } catch (Exception exception) {
+            LOG.warning("Failed to resolve the launcher directory", exception);
+        }
+        return Metadata.CURRENT_DIRECTORY;
     }
 
     private static String extensionOf(Path path) {
@@ -138,12 +168,28 @@ public final class VnclStartupAnimation {
 
     /// One running startup-animation overlay and its lifecycle.
     private static final class Overlay {
+        /// The pane that receives the overlay; it is the window content root.
         private final Pane root;
+
+        /// The overlay layer holding the video view and the skip hint.
         private final StackPane pane = new StackPane();
+
+        /// The player owned by this overlay; disposed when the animation finishes.
         private final MediaPlayer player;
+
+        /// Safety timeout that dismisses the overlay even if media events never arrive.
         private final PauseTransition timeout = new PauseTransition(TIMEOUT);
+
+        /// Monotonic start timestamp used by the key-press grace period.
+        private final long startedNanos = System.nanoTime();
+
+        /// The scene that receives the skip key filter, or null when the overlay is detached.
         private @Nullable Scene scene;
+
+        /// The installed key filter, kept for removal when the animation finishes.
         private @Nullable EventHandler<KeyEvent> keyHandler;
+
+        /// Guards against double-finishing the overlay.
         private boolean finished;
 
         Overlay(Pane root, Path video) {
@@ -158,41 +204,54 @@ public final class VnclStartupAnimation {
 
             Label hint = new Label(i18n("vncl.startup.skip"));
             hint.getStyleClass().add("vncl-startup-hint");
+            hint.setCursor(javafx.scene.Cursor.HAND);
+            hint.setOnMouseClicked(event -> finish("hint"));
             StackPane.setAlignment(hint, Pos.BOTTOM_RIGHT);
             StackPane.setMargin(hint, new Insets(0, 18, 14, 0));
 
             pane.getStyleClass().add("vncl-startup-overlay");
             pane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             pane.getChildren().setAll(view, hint);
-            pane.setOnMouseClicked(event -> finish());
 
-            timeout.setOnFinished(event -> finish());
-            player.setOnEndOfMedia(this::finish);
+            timeout.setOnFinished(event -> finish("timeout"));
+            player.setOnEndOfMedia(() -> finish("end"));
             player.setOnError(() -> {
                 LOG.warning("Startup animation failed: " + player.getError());
-                finish();
+                finish("error");
             });
         }
 
+        /// Adds the overlay to the window and marks it as the active animation.
         void install() {
             root.getChildren().add(pane);
         }
 
-        void start() {
-            scene = root.getScene();
+        /// Starts playback and installs the skip handler on the given scene.
+        void start(@Nullable Scene scene) {
+            if (finished) {
+                return;
+            }
+            this.scene = scene;
             if (scene != null) {
-                keyHandler = event -> finish();
+                keyHandler = event -> {
+                    if (System.nanoTime() - startedNanos < KEY_GRACE_NANOS) {
+                        return;
+                    }
+                    finish("key");
+                };
                 scene.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
             }
             player.play();
             timeout.playFromStart();
         }
 
-        void finish() {
+        /// Dismisses the overlay with a fade-out and records why it ended.
+        void finish(String reason) {
             if (finished) {
                 return;
             }
             finished = true;
+            LOG.info("Startup animation finished: " + reason);
             timeout.stop();
             player.stop();
             if (scene != null && keyHandler != null) {
@@ -204,6 +263,9 @@ public final class VnclStartupAnimation {
             fade.setOnFinished(event -> {
                 root.getChildren().remove(pane);
                 player.dispose();
+                if (current == this) {
+                    current = null;
+                }
             });
             fade.play();
         }

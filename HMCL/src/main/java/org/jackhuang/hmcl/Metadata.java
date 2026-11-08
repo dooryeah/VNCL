@@ -20,7 +20,7 @@ public final class Metadata {
     }
 
     public static final String NAME = "VNCL";
-    public static final String FULL_NAME = "VNCL Launcher";
+    public static final String FULL_NAME = "Vanilla-Neko Craft Launcher";
     public static final String VERSION = System.getProperty("hmcl.version.override", JarUtils.getAttribute("hmcl.version", "@develop@"));
 
     /// Explicit Application User Model ID used for Windows taskbar grouping and pinning.

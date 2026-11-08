@@ -37,6 +37,7 @@ import org.jackhuang.hmcl.util.platform.windows.Gdi32;
 import org.jackhuang.hmcl.util.platform.windows.Shell32;
 import org.jackhuang.hmcl.util.platform.windows.User32;
 import org.jackhuang.hmcl.util.platform.windows.WinReg;
+import org.jackhuang.hmcl.vncl.VnclStartupAnimation;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -130,6 +131,9 @@ public final class Launcher extends Application {
                 UpdateChecker.init();
 
                 primaryStage.show();
+
+                // VNCL: start the startup animation only after the window is visible.
+                VnclStartupAnimation.playOnStartup(primaryStage);
             });
         } catch (Throwable e) {
             CRASH_REPORTER.uncaughtException(Thread.currentThread(), e);
