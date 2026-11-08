@@ -54,3 +54,13 @@ Copy-Item HMCL\build\libs\VNCL-0.1.SNAPSHOT.exe dist\VNCL.exe -Force
 - 按附加条款改名（VNCL）以区别于原版
 - 关于页与 README 均标注「基于 HMCL 的第三方修改版」并提供上游链接
 - 仓库公开，分发时须附源码
+
+## 7. v0.2 更新（侧栏 / 设置入口 / 启动动画）
+
+- **侧栏收缩**：侧栏底部箭头按钮可在完整导航与 60px 图标栏之间切换，状态保存在 `%APPDATA%\.vncl\config\vncl-ui.json` 的 `sidebarCollapsed`。
+- **启动动画**：设置 → 通用 → 「启动动画」启用后，每次启动都会在**整个窗口**（含标题栏）播放所选视频；**按任意键或点击**跳过，视频结束/超时自动淡出。
+- 视频目录：**启动器所在目录的 `videos\`**（`dist\videos\`），支持 `mp4 / m4v / mov / wmv`；推荐 H.264 + AAC 的 MP4（部分编码会报 `ERROR_MEDIA_INVALID`，例如旧的 `mov_bbb.mp4`）。
+- 「提交反馈」从主页侧栏移除，仍可在 设置 → 反馈 进入。
+- **设置入口**：移入窗口标题栏右上角的齿轮按钮，默认打开「通用」页；侧栏不再有设置项。
+- 首次使用启动动画时，启动器会联网下载 `javafx-media`（约 10MB，Java 21 / Java 25 两套运行时各一次）。
+- 附带示例视频 `dist\videos\sample-5s.mp4`，可删除或替换。
