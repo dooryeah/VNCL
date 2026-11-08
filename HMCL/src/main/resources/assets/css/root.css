@@ -502,6 +502,25 @@
     -fx-text-fill: -monet-on-surface-variant;
 }
 
+/* VNCL sidebar launch action */
+.vncl-sidebar-launch {
+    -fx-background-color: -monet-primary;
+    -fx-background-radius: 9px;
+    -fx-text-fill: -monet-on-primary;
+    -fx-font-size: 13px;
+    -fx-min-height: 34px;
+    -fx-pref-height: 34px;
+    -fx-cursor: hand;
+}
+
+.vncl-sidebar-launch:hover {
+    -fx-background-color: derive(-monet-primary, -8%);
+}
+
+.vncl-sidebar-launch .label {
+    -fx-text-fill: -monet-on-primary;
+}
+
 /*******************************************************************************
  *                                                                             *
  * JFX Tab Pane                                                                *

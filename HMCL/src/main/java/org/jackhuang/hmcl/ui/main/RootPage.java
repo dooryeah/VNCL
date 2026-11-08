@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
 package org.jackhuang.hmcl.ui.main;
 
+import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXPopup;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import org.jackhuang.hmcl.game.GameInstanceID;
 import org.jackhuang.hmcl.game.HMCLGameInstance;
 import org.jackhuang.hmcl.game.ModpackHelper;
@@ -77,6 +80,17 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
             gameInstanceItem.setPrepareAction(Controllers::prepareGameInstancePage);
         }
 
+        // VNCL: the launch action lives in the sidebar, right below the instance selector.
+        JFXButton launchButton = new JFXButton();
+        launchButton.getStyleClass().add("vncl-sidebar-launch");
+        launchButton.setMaxWidth(Double.MAX_VALUE);
+        launchButton.setText(i18n("instance.launch.empty"));
+        FXUtils.setOnActionWithCooldown(launchButton, getMainPage()::launchSelected);
+        getMainPage().currentGameProperty().addListener((observable, oldValue, newValue) ->
+                launchButton.setText(newValue == null ? i18n("instance.launch.empty") : i18n("instance.launch")));
+        VBox launchBox = new VBox(launchButton);
+        launchBox.setPadding(new Insets(8, 12, 6, 12));
+
         // VNCL: the instance list is reachable from the instance selector, so no duplicate sidebar entry.
 
         // third item in left sidebar
@@ -110,6 +124,7 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 .add(accountListItem)
                 .startCategory(i18n("instance").toUpperCase(Locale.ROOT))
                 .add(gameInstanceItem)
+                .add(launchBox)
                 .add(downloadItem)
                 .startCategory(i18n("settings.launcher.general").toUpperCase(Locale.ROOT))
                 .add(launcherSettingsItem)

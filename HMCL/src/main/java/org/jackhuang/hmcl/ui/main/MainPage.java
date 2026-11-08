@@ -302,32 +302,18 @@ public final class MainPage extends StackPane implements DecoratorPage {
             launchPane.getChildren().setAll(launchButton, menuButton);
         }
 
-        // VNCL: minimal home — a single card with the selected instance and the launch action.
-        VBox homeCard = new VBox(6);
-        homeCard.getStyleClass().add("vncl-home-card");
-        homeCard.setAlignment(Pos.CENTER_LEFT);
-        homeCard.setMaxWidth(420);
-        homeCard.setMaxHeight(Region.USE_PREF_SIZE);
+        // VNCL: the home surface stays empty — the instance card and launch action live in the sidebar.
+        // The launch pane is still built above so the sidebar button can reuse the same action logic.
 
-        Label instanceLabel = new Label();
-        instanceLabel.getStyleClass().add("vncl-home-instance");
-        Label detailLabel = new Label();
-        detailLabel.getStyleClass().add("vncl-home-detail");
-        FXUtils.onChangeAndOperate(currentGameProperty(), instance -> {
-            if (instance == null) {
-                instanceLabel.setText(i18n("vncl.home.empty"));
-                detailLabel.setText(i18n("instance.launch.empty.tooltip"));
-            } else {
-                instanceLabel.setText(instance.getId().toString());
-                detailLabel.setText("Minecraft " + instance.getVersion());
-            }
-        });
+    }
 
-        VBox.setMargin(launchPane, new Insets(18, 0, 0, 0));
-        homeCard.getChildren().setAll(instanceLabel, detailLabel, launchPane);
-        StackPane.setAlignment(homeCard, Pos.CENTER);
-        getChildren().add(homeCard);
-
+    /// Launches the selected instance, or installs and launches the latest release when none is selected.
+    public void launchSelected() {
+        if (getCurrentGame() == null) {
+            launchNoGame();
+        } else {
+            launch();
+        }
     }
 
     private void showUpdateDialog(boolean show) {

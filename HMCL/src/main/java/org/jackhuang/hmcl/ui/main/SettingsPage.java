@@ -467,7 +467,10 @@ public final class SettingsPage extends ScrollPane {
         }
     }
 
-    /// Builds a settings row with a slider bound bidirectionally to the given token.
+    /// Builds a settings row whose slider commits the token only when the user releases it.
+    ///
+    /// Applying the token on every drag tick re-laid out the page and reloaded the style sheet,
+    /// which made the slider jump under the pointer; committing on release keeps dragging stable.
     private static Node createSliderRow(String title, String subtitle, DoubleProperty property,
                                         double min, double max, double blockIncrement, boolean pixels) {
         LinePane row = new LinePane();
@@ -477,13 +480,26 @@ public final class SettingsPage extends ScrollPane {
         Slider slider = new Slider(min, max, property.get());
         slider.setPrefWidth(200);
         slider.setBlockIncrement(blockIncrement);
-        slider.valueProperty().bindBidirectional(property);
 
         Label valueLabel = new Label();
         valueLabel.setMinWidth(Region.USE_PREF_SIZE);
         valueLabel.textProperty().bind(Bindings.createStringBinding(() -> pixels
-                ? Math.round(property.get()) + " px"
-                : Math.round(property.get() * 100) + " %", property));
+                ? Math.round(slider.getValue()) + " px"
+                : Math.round(slider.getValue() * 100) + " %", slider.valueProperty()));
+
+        slider.valueChangingProperty().addListener((observable, wasChanging, changing) -> {
+            if (!changing) {
+                property.set(slider.getValue());
+            }
+        });
+        slider.setOnMouseReleased(event -> property.set(slider.getValue()));
+        slider.setOnKeyReleased(event -> property.set(slider.getValue()));
+        property.addListener((observable, oldValue, newValue) -> {
+            double value = newValue.doubleValue();
+            if (Math.abs(slider.getValue() - value) > 1e-6) {
+                slider.setValue(value);
+            }
+        });
 
         HBox box = new HBox(10, slider, valueLabel);
         box.setAlignment(Pos.CENTER_RIGHT);

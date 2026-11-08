@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
 package org.jackhuang.hmcl.setting;
 
+import javafx.animation.PauseTransition;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import org.glavo.monetfx.Brightness;
 import org.glavo.monetfx.ColorRole;
 import org.glavo.monetfx.ColorScheme;
@@ -47,13 +50,15 @@ public final class StyleSheets {
             stylesheets.set(THEME_STYLE_SHEET_INDEX, getThemeStyleSheet());
             stylesheets.set(BRIGHTNESS_SHEET_INDEX, getBrightnessStyleSheet());
         });
-        // VNCL: regenerate the token style sheet whenever one of the appearance tokens changes.
-        VnclUiConfig.cornerRadiusProperty().addListener(o ->
+        // VNCL: coalesce token changes and only reload the style sheet once the slider settles.
+        // Re-applying a data-URI style sheet on every pixel used to stall the UI and make sliders jitter.
+        PauseTransition vnclRefresh = new PauseTransition(Duration.millis(120));
+        vnclRefresh.setOnFinished(event ->
                 stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
-        VnclUiConfig.densityProperty().addListener(o ->
-                stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
-        VnclUiConfig.fontScaleProperty().addListener(o ->
-                stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
+        InvalidationListener vnclListener = observable -> vnclRefresh.playFromStart();
+        VnclUiConfig.cornerRadiusProperty().addListener(vnclListener);
+        VnclUiConfig.densityProperty().addListener(vnclListener);
+        VnclUiConfig.fontScaleProperty().addListener(vnclListener);
     }
 
     private static String toStyleSheetUri(String styleSheet) {
