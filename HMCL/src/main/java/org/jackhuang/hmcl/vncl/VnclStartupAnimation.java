@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
@@ -36,7 +37,8 @@ import static org.jackhuang.hmcl.util.logging.Logger.LOG;
 ///
 /// The video is shown in a window-sized overlay that covers the title bar as well. Playback starts
 /// only after the stage has been shown, so slow startup never lets the video end off-screen. A key
-/// press, the end of the video, or the timeout closes the overlay and reveals the launcher.
+/// press, a left mouse click inside the window, the end of the video, or the timeout closes the
+/// overlay and reveals the launcher.
 @NotNullByDefault
 public final class VnclStartupAnimation {
 
@@ -44,7 +46,7 @@ public final class VnclStartupAnimation {
     private static final List<String> EXTENSIONS = List.of("mp4", "m4v", "mov", "wmv");
 
     /// Hard limit so a broken media file can never keep the launcher hidden.
-    private static final Duration TIMEOUT = Duration.seconds(20);
+    private static final Duration TIMEOUT = Duration.minutes(5);
 
     /// Fade-out duration when the overlay is dismissed.
     private static final Duration FADE = Duration.millis(250);
@@ -212,6 +214,12 @@ public final class VnclStartupAnimation {
             pane.getStyleClass().add("vncl-startup-overlay");
             pane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             pane.getChildren().setAll(view, hint);
+            // A left click anywhere inside the window closes the animation immediately.
+            pane.setOnMousePressed(event -> {
+                if (event.getButton() == MouseButton.PRIMARY) {
+                    finish("click");
+                }
+            });
 
             timeout.setOnFinished(event -> finish("timeout"));
             player.setOnEndOfMedia(() -> finish("end"));
@@ -278,3 +286,4 @@ public final class VnclStartupAnimation {
         }
     }
 }
+
