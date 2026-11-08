@@ -77,18 +77,9 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
             gameInstanceItem.setPrepareAction(Controllers::prepareGameInstancePage);
         }
 
+        // VNCL: the instance list is reachable from the instance selector, so no duplicate sidebar entry.
+
         // third item in left sidebar
-        AdvancedListItem gameListItem = new AdvancedListItem();
-        gameListItem.setLeftIcon(SVG.FORMAT_LIST_BULLETED);
-        gameListItem.setTitle(i18n("instance.manage"));
-        gameListItem.setOnAction(e -> Controllers.navigate(Controllers.getGameListPage()));
-        FXUtils.onSecondaryButtonClicked(gameListItem, () -> showGameListPopupMenu(gameListItem));
-
-        if (AnimationUtils.isAnimationEnabled()) {
-            gameListItem.setPrepareAction(Controllers::prepareGameListPage);
-        }
-
-        // forth item in left sidebar
         AdvancedListItem downloadItem = new AdvancedListItem();
         downloadItem.setLeftIcon(SVG.DOWNLOAD);
         downloadItem.setTitle(i18n("download"));
@@ -119,7 +110,6 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 .add(accountListItem)
                 .startCategory(i18n("instance").toUpperCase(Locale.ROOT))
                 .add(gameInstanceItem)
-                .add(gameListItem)
                 .add(downloadItem)
                 .startCategory(i18n("settings.launcher.general").toUpperCase(Locale.ROOT))
                 .add(launcherSettingsItem)
