@@ -77,3 +77,8 @@ language-subtag-registry
 !/.gemini/config.yaml
 .codex
 /.gradle-*/
+
+# VNCL local runtime state
+/.vncl/
+/smoke-*.png
+
