@@ -90,3 +90,7 @@ language-subtag-registry
 # user media
 /videos/
 
+
+# local test captures
+shot-*.png
+
