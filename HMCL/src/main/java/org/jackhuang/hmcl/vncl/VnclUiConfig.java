@@ -4,8 +4,12 @@ package org.jackhuang.hmcl.vncl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import org.jackhuang.hmcl.Metadata;
 import org.jetbrains.annotations.NotNullByDefault;
 
@@ -47,12 +51,40 @@ public final class VnclUiConfig {
     private static final DoubleProperty cornerRadius = new SimpleDoubleProperty(DEFAULT_CORNER_RADIUS);
     private static final DoubleProperty density = new SimpleDoubleProperty(DEFAULT_DENSITY);
     private static final DoubleProperty fontScale = new SimpleDoubleProperty(DEFAULT_FONT_SCALE);
+    private static final BooleanProperty sidebarCollapsed = new SimpleBooleanProperty(false);
+    private static final BooleanProperty startupAnimationEnabled = new SimpleBooleanProperty(false);
+    private static final StringProperty startupAnimationFile = new SimpleStringProperty("");
+    private static final DoubleProperty startupAnimationVolume = new SimpleDoubleProperty(1.0);
 
     static {
         load();
         cornerRadius.addListener(observable -> save());
         density.addListener(observable -> save());
         fontScale.addListener(observable -> save());
+        sidebarCollapsed.addListener(observable -> save());
+        startupAnimationEnabled.addListener(observable -> save());
+        startupAnimationFile.addListener(observable -> save());
+        startupAnimationVolume.addListener(observable -> save());
+    }
+
+    /// Returns whether the startup animation is enabled.
+    public static BooleanProperty startupAnimationEnabledProperty() {
+        return startupAnimationEnabled;
+    }
+
+    /// Returns the file name of the selected startup animation.
+    public static StringProperty startupAnimationFileProperty() {
+        return startupAnimationFile;
+    }
+
+    /// Returns the startup animation volume in the range 0..1.
+    public static DoubleProperty startupAnimationVolumeProperty() {
+        return startupAnimationVolume;
+    }
+
+    /// Returns whether the home sidebar is collapsed into its icon rail.
+    public static BooleanProperty sidebarCollapsedProperty() {
+        return sidebarCollapsed;
     }
 
     /// Returns the corner radius token in pixels.
@@ -112,6 +144,10 @@ public final class VnclUiConfig {
             cornerRadius.set(clamp(data.cornerRadius, MIN_CORNER_RADIUS, MAX_CORNER_RADIUS, DEFAULT_CORNER_RADIUS));
             density.set(clamp(data.density, MIN_DENSITY, MAX_DENSITY, DEFAULT_DENSITY));
             fontScale.set(clamp(data.fontScale, MIN_FONT_SCALE, MAX_FONT_SCALE, DEFAULT_FONT_SCALE));
+            sidebarCollapsed.set(data.sidebarCollapsed);
+            startupAnimationEnabled.set(data.startupAnimationEnabled);
+            startupAnimationFile.set(data.startupAnimationFile == null ? "" : data.startupAnimationFile);
+            startupAnimationVolume.set(clamp(data.startupAnimationVolume, 0, 1, 1.0));
         } catch (Exception exception) {
             LOG.warning("Failed to load VNCL appearance settings", exception);
         }
@@ -126,6 +162,10 @@ public final class VnclUiConfig {
                 data.cornerRadius = cornerRadius.get();
                 data.density = density.get();
                 data.fontScale = fontScale.get();
+                data.sidebarCollapsed = sidebarCollapsed.get();
+                data.startupAnimationEnabled = startupAnimationEnabled.get();
+                data.startupAnimationFile = startupAnimationFile.get();
+                data.startupAnimationVolume = startupAnimationVolume.get();
                 GSON.toJson(data, writer);
             }
         } catch (IOException exception) {
@@ -143,10 +183,14 @@ public final class VnclUiConfig {
     private VnclUiConfig() {
     }
 
-    /// On-disk representation of [#cornerRadius], [#density] and [#fontScale].
+    /// On-disk representation of the VNCL appearance and startup-animation settings.
     private static final class Data {
         double cornerRadius = DEFAULT_CORNER_RADIUS;
         double density = DEFAULT_DENSITY;
         double fontScale = DEFAULT_FONT_SCALE;
+        boolean sidebarCollapsed = false;
+        boolean startupAnimationEnabled = false;
+        String startupAnimationFile = "";
+        double startupAnimationVolume = 1.0;
     }
 }

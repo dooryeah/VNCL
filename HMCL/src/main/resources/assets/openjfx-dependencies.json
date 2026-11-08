@@ -52,6 +52,14 @@
         "version": "21.0.8",
         "classifier": "win",
         "sha1": "ed4a6cb56461d8536e339abf8d7f771e4acf9054"
+      },
+      {
+        "module": "javafx.media",
+        "groupId": "org.openjfx",
+        "artifactId": "javafx-media",
+        "version": "21.0.8",
+        "classifier": "win",
+        "sha1": "ddf722f3a62974c8f52187afef55c6b09b39bd53"
       }
     ],
     "modern": [

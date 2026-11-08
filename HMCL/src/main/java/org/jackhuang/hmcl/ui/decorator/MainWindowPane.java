@@ -33,7 +33,9 @@ import org.jackhuang.hmcl.theme.Themes;
 import org.jackhuang.hmcl.ui.*;
 import org.jackhuang.hmcl.ui.animation.ContainerAnimations;
 import org.jackhuang.hmcl.ui.animation.TransitionPane;
+import org.jackhuang.hmcl.ui.main.LauncherSettingsPage;
 import org.jackhuang.hmcl.ui.wizard.Navigation;
+import org.jackhuang.hmcl.vncl.VnclStartupAnimation;
 import org.jackhuang.hmcl.util.TaskManager;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
@@ -125,6 +127,9 @@ final class MainWindowPane extends StackPane {
         decorator.capableDraggingWindow(titleBar);
 
         getChildren().setAll(backgroundNode, frame);
+
+        // VNCL: the startup animation covers the whole window (title bar included).
+        VnclStartupAnimation.installIfEnabled(this);
     }
 
     /// Moves the custom title bar into or out of the native dragging header.
@@ -208,6 +213,20 @@ final class MainWindowPane extends StackPane {
             }
         });
 
+        JFXButton settingsButton = new JFXButton();
+        settingsButton.setFocusTraversable(false);
+        settingsButton.setAccessibleText(i18n("settings"));
+        settingsButton.setGraphic(SVG.SETTINGS.createIcon(Themes.titleFillProperty()));
+        settingsButton.getStyleClass().add("jfx-decorator-button");
+        settingsButton.setOnAction(event -> {
+            LauncherSettingsPage page = Controllers.getSettingsPage();
+            page.showLauncherSettings();
+            if (decorator.getNavigator().getCurrentPage() != page) {
+                Controllers.navigate(page);
+            }
+        });
+        decorator.forbidDraggingWindow(settingsButton);
+
         JFXButton helpButton = new JFXButton();
         helpButton.setFocusTraversable(false);
         helpButton.setGraphic(SVG.HELP.createIcon(Themes.titleFillProperty()));
@@ -229,7 +248,7 @@ final class MainWindowPane extends StackPane {
         closeButton.setOnAction(event -> decorator.closeWindow());
         decorator.forbidDraggingWindow(closeButton);
 
-        buttons.getChildren().setAll(tasksButton, helpButton, minimizeButton, closeButton);
+        buttons.getChildren().setAll(tasksButton, settingsButton, helpButton, minimizeButton, closeButton);
         return buttons;
     }
 

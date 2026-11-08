@@ -14,6 +14,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ScrollPane;
@@ -21,8 +22,10 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import org.jackhuang.hmcl.Metadata;
 import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.ui.Controllers;
@@ -37,6 +40,7 @@ import org.jackhuang.hmcl.util.i18n.I18n;
 import org.jackhuang.hmcl.util.i18n.SupportedLocale;
 import org.jackhuang.hmcl.util.io.FileUtils;
 import org.jackhuang.hmcl.util.io.IOUtils;
+import org.jackhuang.hmcl.vncl.VnclStartupAnimation;
 import org.jackhuang.hmcl.vncl.VnclUiConfig;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
@@ -127,6 +131,74 @@ public final class SettingsPage extends ScrollPane {
             }
             addSection(rootPane, i18n("vncl.settings.appearance"), appearanceList,
                     "vncl appearance 外观 圆角 圆角半径 密度 间距 字号 预设");
+
+            // VNCL startup animation
+            ComponentList startupList = new ComponentList();
+            {
+                LineSwitch startupEnabled = new LineSwitch();
+                startupEnabled.setTitle(i18n("vncl.startup.enabled"));
+                startupEnabled.selectedProperty().bindBidirectional(VnclUiConfig.startupAnimationEnabledProperty());
+                startupList.getContent().add(startupEnabled);
+
+                LinePane fileRow = new LinePane();
+                fileRow.setTitle(i18n("vncl.startup.file"));
+                ComboBox<String> fileCombo = new ComboBox<>();
+                fileCombo.setPrefWidth(220);
+                Runnable refreshFiles = () -> {
+                    String selected = VnclUiConfig.startupAnimationFileProperty().get();
+                    fileCombo.getItems().setAll(VnclStartupAnimation.listVideos().stream()
+                            .map(path -> path.getFileName().toString())
+                            .toList());
+                    if (selected != null && fileCombo.getItems().contains(selected)) {
+                        fileCombo.setValue(selected);
+                    } else if (!fileCombo.getItems().isEmpty()) {
+                        fileCombo.setValue(fileCombo.getItems().get(0));
+                        VnclUiConfig.startupAnimationFileProperty().set(fileCombo.getValue());
+                    }
+                };
+                fileCombo.valueProperty().addListener((observable, oldValue, newValue) -> {
+                    if (newValue != null) {
+                        VnclUiConfig.startupAnimationFileProperty().set(newValue);
+                    }
+                });
+                fileRow.setRight(fileCombo);
+                startupList.getContent().add(fileRow);
+
+                startupList.getContent().add(createSliderRow(
+                        i18n("vncl.startup.volume"),
+                        i18n("vncl.startup.volume.subtitle"),
+                        VnclUiConfig.startupAnimationVolumeProperty(),
+                        0, 1, 0.05, false));
+
+                HBox startupButtons = new HBox(8);
+                startupButtons.setAlignment(Pos.CENTER_LEFT);
+                JFXButton openFolder = FXUtils.newBorderButton(i18n("vncl.startup.open_folder"));
+                openFolder.setOnAction(event -> {
+                    try {
+                        Files.createDirectories(VnclStartupAnimation.videosDirectory());
+                    } catch (IOException exception) {
+                        LOG.warning("Failed to create the videos directory", exception);
+                    }
+                    FXUtils.openFolder(VnclStartupAnimation.videosDirectory());
+                });
+                JFXButton refreshButton = FXUtils.newBorderButton(i18n("vncl.startup.refresh"));
+                refreshButton.setOnAction(event -> refreshFiles.run());
+                JFXButton previewButton = FXUtils.newBorderButton(i18n("vncl.startup.preview"));
+                previewButton.setOnAction(event -> {
+                    Path video = VnclStartupAnimation.configuredVideo();
+                    Stage stage = Controllers.getStage();
+                    if (video != null && stage != null && stage.getScene() != null
+                            && stage.getScene().getRoot() instanceof Pane pane) {
+                        VnclStartupAnimation.show(pane, video);
+                    }
+                });
+                startupButtons.getChildren().setAll(openFolder, refreshButton, previewButton);
+                startupList.getContent().add(startupButtons);
+
+                refreshFiles.run();
+            }
+            addSection(rootPane, i18n("vncl.startup.title"), startupList,
+                    "startup animation 启动动画 视频 开场");
 
             ComponentList updatePaneList = new ComponentList();
             {

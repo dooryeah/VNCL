@@ -4,8 +4,12 @@ package org.jackhuang.hmcl.ui.main;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXPopup;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.jackhuang.hmcl.game.GameInstanceID;
@@ -35,6 +39,7 @@ import org.jackhuang.hmcl.util.Lang;
 import org.jackhuang.hmcl.util.StringUtils;
 import org.jackhuang.hmcl.util.io.FileUtils;
 import org.jackhuang.hmcl.util.platform.*;
+import org.jackhuang.hmcl.vncl.VnclUiConfig;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -103,35 +108,62 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
             downloadItem.setPrepareAction(Controllers::prepareDownloadPage);
         }
 
-        // fifth item in left sidebar
-        AdvancedListItem launcherSettingsItem = new AdvancedListItem();
-        launcherSettingsItem.setLeftIcon(SVG.SETTINGS);
-        launcherSettingsItem.setTitle(i18n("settings"));
-        launcherSettingsItem.setOnAction(e -> {
-            Controllers.getSettingsPage().showGameSettings(GameDirectoryManager.getSelectedRepository());
-            Controllers.navigate(Controllers.getSettingsPage());
-        });
-
-        if (AnimationUtils.isAnimationEnabled()) {
-            launcherSettingsItem.setPrepareAction(Controllers::prepareSettingsPage);
-        }
-
         // VNCL: Terracotta (HMCL's multiplayer service) is intentionally not exposed in this fork.
 
+        // VNCL: compact rail shown while the sidebar is collapsed.
+        JFXButton railAccount = createRailButton(SVG.PERSON, i18n("account"),
+                () -> Controllers.navigate(Controllers.getAccountListPage()));
+        JFXButton railInstance = createRailButton(SVG.FORMAT_LIST_BULLETED, i18n("instance"), () -> {
+            @Nullable HMCLGameInstance instance = GameDirectoryManager.getSelectedRepository().getSelectedInstance();
+            if (instance == null) {
+                Controllers.navigate(Controllers.getGameListPage());
+            } else {
+                Instances.modifyGameSettings(instance);
+            }
+        });
+        JFXButton railLaunch = createRailButton(SVG.ARROW_FORWARD, i18n("instance.launch"), getMainPage()::launchSelected);
+        JFXButton railDownload = createRailButton(SVG.DOWNLOAD, i18n("download"),
+                () -> Controllers.navigate(Controllers.getDownloadPage()));
+        Region railSpacer = new Region();
+        VBox.setVgrow(railSpacer, Priority.ALWAYS);
+        VBox rail = new VBox(6, railAccount, railInstance, railLaunch, railDownload, railSpacer);
+        rail.setAlignment(Pos.TOP_CENTER);
+        rail.setPadding(new Insets(10, 6, 0, 6));
+        rail.getStyleClass().add("vncl-compact-sidebar");
+        setCompactSidebar(rail);
+
+        // VNCL: the collapse toggle lives at the sidebar bottom in both states.
+        JFXButton collapseToggle = new JFXButton();
+        collapseToggle.getStyleClass().add("vncl-sidebar-toggle");
+        collapseToggle.setGraphic(SVG.ARROW_BACK.createIcon());
+        FXUtils.installFastTooltip(collapseToggle, i18n("vncl.sidebar.toggle"));
+        collapseToggle.setOnAction(event -> {
+            boolean collapsed = !isSidebarCollapsed();
+            setSidebarCollapsed(collapsed);
+            VnclUiConfig.sidebarCollapsedProperty().set(collapsed);
+            collapseToggle.setGraphic((collapsed ? SVG.ARROW_FORWARD : SVG.ARROW_BACK).createIcon());
+        });
+        HBox bottomBar = new HBox(collapseToggle);
+        bottomBar.setAlignment(Pos.CENTER);
+        bottomBar.getStyleClass().add("vncl-sidebar-toggle-bar");
+        setSidebarBottom(bottomBar);
+
+        if (VnclUiConfig.sidebarCollapsedProperty().get()) {
+            Platform.runLater(() -> {
+                setSidebarCollapsed(true);
+                collapseToggle.setGraphic(SVG.ARROW_FORWARD.createIcon());
+            });
+        }
+
         // the left sidebar
+        // VNCL: the launcher settings entry moved to the title-bar gear; feedback stays in the settings page.
         getSidebar()
                 .startCategory(i18n("account").toUpperCase(Locale.ROOT))
                 .add(accountListItem)
                 .startCategory(i18n("instance").toUpperCase(Locale.ROOT))
                 .add(gameInstanceItem)
                 .add(launchBox)
-                .add(downloadItem)
-                .startCategory(i18n("settings.launcher.general").toUpperCase(Locale.ROOT))
-                .add(launcherSettingsItem)
-                .addNavigationDrawerItem(i18n("contact.feedback"), SVG.CHAT, () -> {
-                    Controllers.getSettingsPage().showFeedback();
-                    Controllers.navigate(Controllers.getSettingsPage());
-                });
+                .add(downloadItem);
 
         // the root page, with the sidebar in left, navigator in center.
         setContent(getMainPage());
@@ -182,5 +214,15 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 gameListItem.getWidth(),
                 0,
                 getMainPage().getInstances());
+    }
+
+    /// Builds an icon-only button for the collapsed sidebar rail.
+    private static JFXButton createRailButton(SVG icon, String tooltip, Runnable action) {
+        JFXButton button = new JFXButton();
+        button.getStyleClass().add("vncl-rail-button");
+        button.setGraphic(icon.createIcon());
+        FXUtils.installFastTooltip(button, tooltip);
+        button.setOnAction(event -> action.run());
+        return button;
     }
 }

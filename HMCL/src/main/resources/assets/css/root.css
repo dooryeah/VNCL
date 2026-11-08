@@ -521,6 +521,61 @@
     -fx-text-fill: -monet-on-primary;
 }
 
+/* VNCL collapsible sidebar */
+.vncl-compact-sidebar {
+    -fx-background-color: transparent;
+}
+
+.vncl-rail-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10px;
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-pref-width: 40px;
+    -fx-pref-height: 40px;
+    -fx-cursor: hand;
+}
+
+.vncl-rail-button:hover {
+    -fx-background-color: -monet-surface-container-low;
+}
+
+.vncl-rail-button .svg {
+    -fx-fill: -monet-on-surface-variant;
+}
+
+.vncl-sidebar-toggle {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-pref-width: 28px;
+    -fx-pref-height: 28px;
+    -fx-cursor: hand;
+}
+
+.vncl-sidebar-toggle:hover {
+    -fx-background-color: -monet-surface-container-low;
+}
+
+.vncl-sidebar-toggle .svg {
+    -fx-fill: -monet-on-surface-variant;
+}
+
+.vncl-sidebar-toggle-bar {
+    -fx-padding: 4px 0 0 0;
+}
+
+/* VNCL startup animation */
+.vncl-startup-overlay {
+    -fx-background-color: black;
+}
+
+.vncl-startup-hint {
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-font-size: 12px;
+}
+
 /*******************************************************************************
  *                                                                             *
  * JFX Tab Pane                                                                *

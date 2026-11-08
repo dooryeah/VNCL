@@ -94,6 +94,13 @@ public class LauncherSettingsPage extends DecoratorAnimatedPage implements Decor
         tabController.selectTab(gameTab, false);
     }
 
+    /// Selects the general launcher settings tab.
+    ///
+    /// Used by the title-bar gear so the launcher settings open first instead of the game settings.
+    public void showLauncherSettings() {
+        tabController.selectTab(settingsTab, false);
+    }
+
     public void showFeedback() {
         tabController.selectTab(feedbackTab, false);
     }

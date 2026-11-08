@@ -68,6 +68,9 @@ dependencies {
     implementation(libs.nayuki.qrcodegen)
     implementation(libs.uuid.tools)
 
+    // VNCL: JavaFX media is downloaded at runtime; the compile classpath needs the Windows artifact.
+    compileOnly("org.openjfx:javafx-media:21.0.8:win")
+
     testImplementation(libs.jimfs)
 
     if (launcherExe.isBlank()) {

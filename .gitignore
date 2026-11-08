@@ -86,3 +86,7 @@ language-subtag-registry
 # build output
 /dist/
 
+
+# user media
+/videos/
+
