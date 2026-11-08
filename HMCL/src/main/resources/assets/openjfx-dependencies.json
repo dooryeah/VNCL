@@ -86,6 +86,14 @@
         "version": "25",
         "classifier": "win",
         "sha1": "d68b7b7ab8b01c94b79205423337f03995ee55ef"
+      },
+      {
+        "module": "javafx.media",
+        "groupId": "org.openjfx",
+        "artifactId": "javafx-media",
+        "version": "25",
+        "classifier": "win",
+        "sha1": "75c2f7ca16460e9e68fb220708fe86ba797aa300"
       }
     ]
   },

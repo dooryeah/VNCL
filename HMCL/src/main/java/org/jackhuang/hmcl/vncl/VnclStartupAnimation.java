@@ -48,8 +48,28 @@ public final class VnclStartupAnimation {
     private static final Duration FADE = Duration.millis(250);
 
     /// Returns the directory scanned for startup videos (next to the launcher executable).
+    ///
+    /// The launcher can be started as a jar or as the packaged exe, so the directory is derived from
+    /// the code source instead of the process working directory.
     public static Path videosDirectory() {
-        return Metadata.CURRENT_DIRECTORY.resolve("videos");
+        return launcherDirectory().resolve("videos");
+    }
+
+    /// Returns the directory that contains the launcher jar or exe.
+    private static Path launcherDirectory() {
+        try {
+            var codeSource = VnclStartupAnimation.class.getProtectionDomain().getCodeSource();
+            if (codeSource != null) {
+                Path path = Path.of(codeSource.getLocation().toURI());
+                Path directory = Files.isDirectory(path) ? path : path.getParent();
+                if (directory != null) {
+                    return directory;
+                }
+            }
+        } catch (Exception exception) {
+            LOG.warning("Failed to resolve the launcher directory", exception);
+        }
+        return Metadata.CURRENT_DIRECTORY;
     }
 
     /// Returns every supported video file in [#videosDirectory()], sorted by name.
