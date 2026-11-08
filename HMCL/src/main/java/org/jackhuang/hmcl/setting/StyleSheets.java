@@ -2,14 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
 package org.jackhuang.hmcl.setting;
 
-import javafx.animation.PauseTransition;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 import org.glavo.monetfx.Brightness;
 import org.glavo.monetfx.ColorRole;
 import org.glavo.monetfx.ColorScheme;
@@ -17,7 +14,6 @@ import org.jackhuang.hmcl.theme.ResolvedTheme;
 import org.jackhuang.hmcl.theme.ThemeColor;
 import org.jackhuang.hmcl.theme.Themes;
 import org.jackhuang.hmcl.vncl.VnclStyleSheets;
-import org.jackhuang.hmcl.vncl.VnclUiConfig;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -50,15 +46,9 @@ public final class StyleSheets {
             stylesheets.set(THEME_STYLE_SHEET_INDEX, getThemeStyleSheet());
             stylesheets.set(BRIGHTNESS_SHEET_INDEX, getBrightnessStyleSheet());
         });
-        // VNCL: coalesce token changes and only reload the style sheet once the slider settles.
-        // Re-applying a data-URI style sheet on every pixel used to stall the UI and make sliders jitter.
-        PauseTransition vnclRefresh = new PauseTransition(Duration.millis(120));
-        vnclRefresh.setOnFinished(event ->
-                stylesheets.set(VNCL_STYLE_SHEET_INDEX, VnclStyleSheets.getStyleSheet()));
-        InvalidationListener vnclListener = observable -> vnclRefresh.playFromStart();
-        VnclUiConfig.cornerRadiusProperty().addListener(vnclListener);
-        VnclUiConfig.densityProperty().addListener(vnclListener);
-        VnclUiConfig.fontScaleProperty().addListener(vnclListener);
+        // VNCL: appearance tokens are read once at startup. Replacing the token style sheet at runtime
+        // makes the JFX switch skin re-measure its artwork and render as a black blob, so the settings
+        // page asks for a restart instead of reloading the sheet live.
     }
 
     private static String toStyleSheetUri(String styleSheet) {

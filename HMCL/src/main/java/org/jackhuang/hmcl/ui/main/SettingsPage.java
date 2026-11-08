@@ -128,6 +128,11 @@ public final class SettingsPage extends ScrollPane {
                         createPresetButton(i18n("vncl.settings.preset.relaxed"), "relaxed"),
                         createPresetButton(i18n("vncl.settings.reset"), "reset"));
                 appearanceList.getContent().add(presets);
+
+                Label restartHint = new Label(i18n("vncl.settings.restart_hint"));
+                restartHint.getStyleClass().add("subtitle-label");
+                restartHint.setWrapText(true);
+                appearanceList.getContent().add(restartHint);
             }
             addSection(rootPane, i18n("vncl.settings.appearance"), appearanceList,
                     "vncl appearance 外观 圆角 圆角半径 密度 间距 字号 预设");
