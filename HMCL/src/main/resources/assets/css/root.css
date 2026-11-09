@@ -2284,14 +2284,14 @@
 /* VNCL frosted-glass surfaces */
 .vncl-glass-mode .options-list {
     -fx-background-color: transparent;
-    -fx-border-color: rgba(255, 255, 255, 0.45);
+    -fx-border-color: rgba(255, 255, 255, 0.55) rgba(255, 255, 255, 0.18) rgba(0, 0, 0, 0.12) rgba(255, 255, 255, 0.30);
     -fx-border-width: 1;
     -fx-border-radius: 14;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.32), 18, 0.20, 0, 6);
 }
 
 .vncl-glass-mode .options-list .options-list-item {
-    -fx-background-color: -monet-surface-transparent-30;
+    -fx-background-color: -monet-surface-transparent-15;
 }
 
 .vncl-glass-mode .options-list .options-list-item:first {
@@ -2307,7 +2307,7 @@
 }
 
 .vncl-glass-mode .jfx-dialog-layout {
-    -fx-background-color: -monet-surface-transparent-30;
+    -fx-background-color: -monet-surface-transparent-15;
     -fx-border-color: rgba(255, 255, 255, 0.5);
     -fx-border-width: 1;
     -fx-background-radius: 14;
@@ -2316,7 +2316,7 @@
 }
 
 .vncl-glass-mode .vncl-glass-flat.gray-background {
-    -fx-background-color: -monet-surface-transparent-30;
+    -fx-background-color: -monet-surface-transparent-15;
     -fx-border-color: transparent rgba(255, 255, 255, 0.28) transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
@@ -2324,4 +2324,7 @@
 .vncl-glass-mode .jfx-tool-bar {
     -fx-border-color: transparent transparent rgba(255, 255, 255, 0.30) transparent;
     -fx-border-width: 0 0 1 0;
+}
+.vncl-glass-mode .options-list .options-list-item:hover {
+    -fx-background-color: -monet-surface-transparent-30;
 }

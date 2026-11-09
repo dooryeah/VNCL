@@ -2,20 +2,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later WITH AdditionRef-HMCL
 package org.jackhuang.hmcl.vncl;
 
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import org.jetbrains.annotations.NotNullByDefault;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +53,7 @@ public final class VnclGlassLayer extends Region {
     /// Periodic clip refresh; scrolling also requests an immediate refresh.
     private final Timeline refreshTimeline;
 
+
     /// Creates and installs the blurred backdrop layer.
     ///
     /// @param root the window content pane that contains the wallpaper and the UI
@@ -61,6 +67,9 @@ public final class VnclGlassLayer extends Region {
         setClip(clipGroup);
         backgroundProperty().bind(source.backgroundProperty());
         opacityProperty().bind(source.opacityProperty());
+
+        root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> animateButtonScale(event.getTarget(), 0.96));
+        root.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> animateButtonScale(event.getTarget(), 1.0));
 
         double blurRadius = Math.max(0, VnclUiConfig.glassBlurProperty().get());
         if (blurRadius > 0.5) {
@@ -130,5 +139,27 @@ public final class VnclGlassLayer extends Region {
             }
         }
         return true;
+    }
+
+    /// Scales the button under the pressed node with a short spring-like transition.
+    ///
+    /// @param target the event target
+    /// @param scale the target scale factor
+    private static void animateButtonScale(@Nullable Object target, double scale) {
+        if (!(target instanceof Node node)) {
+            return;
+        }
+        Node control = node;
+        while (control != null && !(control instanceof ButtonBase)) {
+            control = control.getParent();
+        }
+        if (control == null) {
+            return;
+        }
+        ScaleTransition transition = new ScaleTransition(Duration.millis(90), control);
+        transition.setToX(scale);
+        transition.setToY(scale);
+        transition.setInterpolator(Interpolator.EASE_OUT);
+        transition.play();
     }
 }
