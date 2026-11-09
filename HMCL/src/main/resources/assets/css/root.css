@@ -2280,3 +2280,26 @@
     -fx-opacity: 0.9;
     -fx-padding: 0 6px 2px 6px;
 }
+/* VNCL frosted-glass surfaces */
+.vncl-glass-mode .vncl-glass-card {
+    -fx-background-color: transparent;
+    -fx-border-color: -monet-outline-variant;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+}
+
+.vncl-glass-mode .vncl-glass-card .options-list-item {
+    -fx-background-color: -monet-surface-transparent-50;
+}
+
+.vncl-glass-mode .vncl-glass-card .options-list-item:first {
+    -fx-background-radius: 14 14 0 0;
+}
+
+.vncl-glass-mode .vncl-glass-card .options-list-item:last {
+    -fx-background-radius: 0 0 14 14;
+}
+
+.vncl-glass-mode .vncl-glass-card .options-list-item:first:last {
+    -fx-background-radius: 14;
+}
