@@ -558,8 +558,11 @@ public sealed abstract class GameSettings extends ObservableSetting {
     public static final String PROPERTY_LAUNCHER_VISIBILITY = "launcherVisibility";
 
     /// Launcher behavior after the game starts.
+    ///
+    /// VNCL keeps the launcher visible by default so launching a game never makes the launcher
+    /// window disappear unexpectedly.
     @SerializedName(PROPERTY_LAUNCHER_VISIBILITY)
-    private final InheritableProperty<LauncherVisibility> launcherVisibility = newInheritableProperty(PROPERTY_LAUNCHER_VISIBILITY, LauncherVisibility.HIDE);
+    private final InheritableProperty<LauncherVisibility> launcherVisibility = newInheritableProperty(PROPERTY_LAUNCHER_VISIBILITY, LauncherVisibility.KEEP);
 
     /// Returns the launcher visibility property.
     public InheritableProperty<LauncherVisibility> launcherVisibilityProperty() {
