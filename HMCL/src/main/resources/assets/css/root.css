@@ -2380,37 +2380,6 @@
     -fx-opacity: 0.45;
     -fx-font-size: 13px;
 }
-/* VNCL focus visibility */
-.jfx-button:focused,
-.jfx-button-border:focused,
-.jfx-button-raised:focused,
-.jfx-button-raised-round:focused,
-.jfx-tool-bar-button:focused {
-    -fx-border-color: -monet-primary;
-    -fx-border-width: 2px;
-    -fx-border-insets: -2px;
-    -fx-border-radius: 10px;
-}
-
-.jfx-tool-bar .jfx-decorator-button:focused {
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-}
-
-.list-cell:focused,
-.jfx-list-cell:focused {
-    -fx-border-color: -monet-primary;
-    -fx-border-width: 2px;
-    -fx-border-insets: -2px;
-    -fx-border-radius: 10px;
-}
-
-.advanced-list-item:focused > .rippler-container {
-    -fx-border-color: -monet-primary;
-    -fx-border-width: 2px;
-    -fx-border-insets: -2px;
-    -fx-border-radius: 10px;
-}
 /* VNCL empty states and skeletons */
 .vncl-empty-state {
     -fx-padding: 36 24 36 24;
