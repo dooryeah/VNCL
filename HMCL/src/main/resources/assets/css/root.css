@@ -2273,3 +2273,10 @@
 .date-picker-popup .title {
     -fx-text-fill: -monet-on-surface-variant;
 }
+
+.vncl-sidebar-playtime {
+    -fx-font-size: 11px;
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-opacity: 0.9;
+    -fx-padding: 0 6px 2px 6px;
+}

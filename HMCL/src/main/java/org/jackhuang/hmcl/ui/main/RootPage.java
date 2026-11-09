@@ -5,9 +5,11 @@ package org.jackhuang.hmcl.ui.main;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXPopup;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -38,6 +40,7 @@ import org.jackhuang.hmcl.util.Lang;
 import org.jackhuang.hmcl.util.StringUtils;
 import org.jackhuang.hmcl.util.io.FileUtils;
 import org.jackhuang.hmcl.util.platform.*;
+import org.jackhuang.hmcl.vncl.VnclPlaytimeManager;
 import org.jackhuang.hmcl.vncl.VnclUiConfig;
 import org.jetbrains.annotations.Nullable;
 
@@ -131,7 +134,15 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         rail.getStyleClass().add("vncl-compact-sidebar");
         setCompactSidebar(rail);
 
-        // VNCL: the collapse toggle lives at the sidebar bottom in both states.
+        // VNCL: the collapse toggle and the accumulated playtime live at the sidebar bottom.
+        Label playtimeLabel = new Label();
+        playtimeLabel.getStyleClass().add("vncl-sidebar-playtime");
+        playtimeLabel.setAlignment(Pos.CENTER);
+        playtimeLabel.textProperty().bind(Bindings.createStringBinding(
+                () -> i18n("vncl.playtime.total",
+                        VnclPlaytimeManager.formatDuration(VnclPlaytimeManager.totalMillisProperty().get())),
+                VnclPlaytimeManager.totalMillisProperty()));
+
         JFXButton collapseToggle = new JFXButton();
         collapseToggle.getStyleClass().add("vncl-sidebar-toggle");
         collapseToggle.setGraphic(SVG.ARROW_BACK.createIcon());
@@ -141,16 +152,25 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
             setSidebarCollapsed(collapsed);
             VnclUiConfig.sidebarCollapsedProperty().set(collapsed);
             collapseToggle.setGraphic((collapsed ? SVG.ARROW_FORWARD : SVG.ARROW_BACK).createIcon());
+            playtimeLabel.setVisible(!collapsed);
+            playtimeLabel.setManaged(!collapsed);
         });
-        HBox bottomBar = new HBox(collapseToggle);
+
+        HBox toggleRow = new HBox(collapseToggle);
+        toggleRow.setAlignment(Pos.CENTER);
+        VBox bottomBar = new VBox(2, playtimeLabel, toggleRow);
         bottomBar.setAlignment(Pos.CENTER);
         bottomBar.getStyleClass().add("vncl-sidebar-toggle-bar");
         setSidebarBottom(bottomBar);
 
         if (VnclUiConfig.sidebarCollapsedProperty().get()) {
+            playtimeLabel.setVisible(false);
+            playtimeLabel.setManaged(false);
             Platform.runLater(() -> {
                 setSidebarCollapsed(true);
                 collapseToggle.setGraphic(SVG.ARROW_FORWARD.createIcon());
+                playtimeLabel.setVisible(false);
+                playtimeLabel.setManaged(false);
             });
         }
 

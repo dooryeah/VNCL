@@ -35,6 +35,7 @@ import org.jackhuang.hmcl.util.platform.*;
 import org.jackhuang.hmcl.util.platform.windows.WinReg;
 import org.jackhuang.hmcl.util.versioning.GameVersionNumber;
 import org.jackhuang.hmcl.util.versioning.VersionNumber;
+import org.jackhuang.hmcl.vncl.VnclPlaytimeManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
@@ -851,6 +852,8 @@ public final class LauncherHelper {
         private final LaunchOptions launchOptions;
         private ManagedProcess process;
         private volatile boolean lwjgl;
+        /// VNCL playtime session id, started when the game window appears and ended on process exit.
+        private volatile long playtimeSessionId = -1;
         private LogWindow logWindow;
         private final boolean detectWindow;
         private final CircularArrayList<Log> logs;
@@ -1006,6 +1009,9 @@ public final class LauncherHelper {
                     try {
                         if (!lwjgl) {
                             lwjgl = true;
+                            // VNCL: the game window is now visible; start counting playtime.
+                            if (playtimeSessionId < 0)
+                                playtimeSessionId = VnclPlaytimeManager.beginSession();
                             finishLaunch();
                         }
                     } finally {
@@ -1017,6 +1023,12 @@ public final class LauncherHelper {
 
         @Override
         public void onExit(int exitCode, ExitType exitType) {
+            // VNCL: finish the playtime session before any early return below.
+            if (playtimeSessionId >= 0) {
+                VnclPlaytimeManager.endSession(playtimeSessionId);
+                playtimeSessionId = -1;
+            }
+
             if (showLogs) {
                 logBuffer.add(new Log(String.format("[%s] [HMCL ProcessListener] Minecraft exit with code %d(0x%x), type is %s.", TIME_FORMATTER.format(Instant.now()), exitCode, exitCode, exitType), Log4jLevel.INFO));
                 submitLogThread.interrupt();

@@ -37,6 +37,7 @@ import org.jackhuang.hmcl.util.platform.windows.Gdi32;
 import org.jackhuang.hmcl.util.platform.windows.Shell32;
 import org.jackhuang.hmcl.util.platform.windows.User32;
 import org.jackhuang.hmcl.util.platform.windows.WinReg;
+import org.jackhuang.hmcl.vncl.VnclPlaytimeManager;
 import org.jackhuang.hmcl.vncl.VnclStartupAnimation;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,6 +98,9 @@ public final class Launcher extends Application {
 
         try {
             initializeSettingsRuntime();
+
+            // VNCL: load the accumulated playtime and recover sessions interrupted by a previous exit.
+            VnclPlaytimeManager.initialize();
 
             // https://lapcatsoftware.com/articles/app-translocation.html
             if (OperatingSystem.CURRENT_OS == OperatingSystem.MACOS
@@ -354,6 +358,7 @@ public final class Launcher extends Application {
         runInFX(() -> {
             if (Controllers.getStage() == null)
                 return;
+            VnclPlaytimeManager.shutdown();
             Controllers.getStage().close();
             Schedulers.shutdown();
             Controllers.shutdown();
@@ -367,6 +372,7 @@ public final class Launcher extends Application {
         runInFX(() -> {
             if (Controllers.getStage() == null)
                 return;
+            VnclPlaytimeManager.shutdown();
             Controllers.getStage().close();
             Schedulers.shutdown();
             Controllers.shutdown();

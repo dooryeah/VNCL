@@ -129,3 +129,10 @@ $env:MICROSOFT_AUTH_ID = "<客户端ID>"
 - 跑 exe：先设置环境变量 `JAVA_TOOL_OPTIONS=-Dhmcl.microsoft.auth.id=<客户端ID>`，再启动 `VNCL.exe`（只影响当前会话）
 
 说明：Client ID 是公开标识，不是密钥；不要复用 HMCL 官方的 App ID。代码请求的 scope 为 `XboxLive.signin offline_access`。
+
+## 12. 游玩时长统计（极简版）
+
+- 只统计**通过 VNCL 启动**的游戏：从游戏窗口出现（日志检测到 LWJGL 初始化）开始计时，进程退出时结束。
+- 侧栏底部（展开状态）显示「总游玩 X 小时 Y 分钟」，精确到分钟；不显示单次时长，也没有统计页。
+- 数据保存在 `%APPDATA%\.vncl\config\playtime.json`；运行中每 30 秒写入心跳，启动器异常退出后下次启动会按最后心跳补记（误差 ≤30 秒）。
+- 收起侧栏时隐藏时长文字；折叠到图标栏不影响计时。
