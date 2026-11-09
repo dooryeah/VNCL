@@ -273,7 +273,7 @@ final class MainWindowPane extends StackPane {
         } else {
             Color surface = colorScheme.getPrimaryContainer();
             // VNCL: let the frosted backdrop show through the title bar when glass is enabled.
-            double alpha = VnclUiConfig.glassEnabledProperty().get() ? 0.55 : 1.0;
+            double alpha = VnclUiConfig.glassEnabledProperty().get() ? 0.4 : 1.0;
             titleBar.setBackground(new Background(new BackgroundFill(
                     new Color(surface.getRed(), surface.getGreen(), surface.getBlue(), alpha),
                     CornerRadii.EMPTY,

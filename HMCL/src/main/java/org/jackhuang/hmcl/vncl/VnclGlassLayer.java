@@ -31,7 +31,7 @@ import java.util.List;
 public final class VnclGlassLayer extends Region {
 
     /// Corner radius used for card-like glass surfaces, in pixels.
-    private static final double CARD_RADIUS = 22;
+    private static final double CARD_RADIUS = 14;
 
     /// How often the clip is refreshed to follow layout and scrolling, in milliseconds.
     private static final double REFRESH_MILLIS = 80;
@@ -93,7 +93,8 @@ public final class VnclGlassLayer extends Region {
     private void rebuildClip() {
         List<Rectangle> shapes = new ArrayList<>();
         collect("vncl-glass-flat", true, shapes);
-        collect("vncl-glass-card", false, shapes);
+        collect("options-list", false, shapes);
+        collect("jfx-dialog-layout", false, shapes);
         clipGroup.getChildren().setAll(shapes);
     }
 
