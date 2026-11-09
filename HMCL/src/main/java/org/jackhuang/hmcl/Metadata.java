@@ -35,9 +35,9 @@ public final class Metadata {
     public static final int MINIMUM_SUPPORTED_JAVA_VERSION = 17;
     public static final int RECOMMENDED_JAVA_VERSION = 21;
 
-    /// Official site of this build. Replace it once the project is hosted publicly.
-    public static final String PUBLISH_URL = "https://github.com/VNCL-Launcher/VNCL";
-    public static final String REPOSITORY_URL = "https://github.com/VNCL-Launcher/VNCL";
+    /// Official site of this build.
+    public static final String PUBLISH_URL = "https://github.com/dooryeah/VNCL";
+    public static final String REPOSITORY_URL = "https://github.com/dooryeah/VNCL";
     /// Empty means the launcher never queries an update server.
     /// Point it at the VNCL update endpoint (or set `-Dhmcl.update_source.override=<url>`) when updates are ready.
     public static final String HMCL_UPDATE_URL = System.getProperty("hmcl.update_source.override", "");

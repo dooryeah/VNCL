@@ -35,7 +35,7 @@
 
 1. **Java 运行时**：启动包装器（上游 `HMCLauncher`）会把运行时放在 `%APPDATA%\.hmcl\java`；若要完全品牌化，需要自建包装器或改用 jpackage/jlink 打包。
 2. **微软正版登录**：需要自备 Azure 应用 Client ID（构建时注入 `MICROSOFT_AUTH_ID`），当前版本未启用。
-3. **仓库地址**：`Metadata` 中仍是占位 `github.com/VNCL-Launcher/VNCL`，更新源/反馈入口指向该地址。
+3. **仓库地址**：`Metadata` 已指向 `https://github.com/dooryeah/VNCL`，关于页、反馈与帮助入口均使用该地址；关于页新增「官网」入口 `https://nekoinn.top`。
 4. **测试范围**：仅在 Windows 11 实机验证；macOS/Linux 未测。
 5. **外部服务**：联机（Terracotta）、官方公告、社区群组已移除入口，代码仍在上游工程中。
 

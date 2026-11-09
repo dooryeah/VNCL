@@ -63,7 +63,13 @@ public final class AboutPage extends SpinnerPane {
             upstream.setTitle(i18n("vncl.about.upstream"));
             upstream.setSubtitle(i18n("vncl.about.upstream.subtitle"));
 
-            about.getContent().setAll(launcher, upstream);
+            // VNCL: the project website lives outside the repository.
+            var website = LineButton.createExternalLinkButton("https://nekoinn.top");
+            website.setTitle(i18n("vncl.about.website"));
+            website.setSubtitle("nekoinn.top");
+            website.setLeading(SVG.PUBLIC.createIcon(20));
+
+            about.getContent().setAll(launcher, upstream, website);
         }
 
         ComponentList systemInfo = new ComponentList();
