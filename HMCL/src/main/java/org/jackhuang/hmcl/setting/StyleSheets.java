@@ -152,6 +152,14 @@ public final class StyleSheets {
         addColor(builder, scheme, ColorRole.SURFACE_CONTAINER_LOW, 0.8);
         addColor(builder, scheme, ColorRole.SECONDARY_CONTAINER, 0.8);
         addColor(builder, scheme, ColorRole.INVERSE_SURFACE, 0.8);
+        addColor(builder, "-vncl-hover",
+                scheme.getColor(ColorRole.SURFACE).interpolate(scheme.getColor(ColorRole.ON_SURFACE), 0.06));
+        addColor(builder, "-vncl-hover-strong",
+                scheme.getColor(ColorRole.SURFACE).interpolate(scheme.getColor(ColorRole.ON_SURFACE), 0.10));
+        addColor(builder, "-vncl-title-hover",
+                scheme.getColor(ColorRole.PRIMARY_CONTAINER).interpolate(scheme.getColor(ColorRole.ON_PRIMARY_CONTAINER), 0.10));
+        addColor(builder, "-vncl-title-hover-strong",
+                scheme.getColor(ColorRole.PRIMARY_CONTAINER).interpolate(scheme.getColor(ColorRole.ON_PRIMARY_CONTAINER), 0.16));
 
         builder.append("}\n");
         return toStyleSheetUri(builder.toString());

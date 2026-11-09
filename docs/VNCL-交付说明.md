@@ -149,3 +149,11 @@ $env:MICROSOFT_AUTH_ID = "<客户端ID>"
 - 默认的 `launcherVisibility` 从 `HIDE` 改为 `KEEP`：启动游戏后启动器窗口不再自动隐藏，游戏退出后也不会自动结束启动器。
 - 兼容旧设置迁移：`LegacyGameSettingsMigrator` 的缺省值同步改为 `KEEP`。
 - 仍可在「设置 → 全局游戏设置 → 启动器设置 → 启动器可见性」中改回隐藏/关闭/隐藏并重新打开。
+
+## 16. 交互细节重做（悬停/按钮）
+
+- 修正窗口按钮悬停变圆的问题：通用 `.jfx-decorator-button` 的 50px 圆角会覆盖标题栏规则；现在标题栏按钮统一为 32×30、7px 圆角、2px 间距，使用不透明的主题混合色，不再出现圆形阴影或圆形涟漪。
+- 新增主题感知交互色：`-vncl-hover`、`-vncl-hover-strong`、`-vncl-title-hover`、`-vncl-title-hover-strong`（blue.css 与生成主题各一套），悬停色随主题变化。
+- 关闭按钮悬停改为 Windows 11 风格红色圆角块（`#C42B1C`）+ 白色 ×，按下加深。
+- 描边按钮（默认/紧凑/宽松/恢复默认/打开文件夹等）悬停统一为浅色填充 + 主色描边，按下加深。
+- 标题栏透明状态下自动切换 `vncl-titlebar-transparent` 样式类，保证浅色壁纸和深色标题栏两种情况下悬停都可见。

@@ -183,7 +183,8 @@ final class MainWindowPane extends StackPane {
     /// @return a size-limited top-right button row
     private HBox createWindowButtons() {
         HBox buttons = new HBox();
-        buttons.setAlignment(Pos.TOP_RIGHT);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setSpacing(2);
         decorator.capableDraggingWindow(buttons);
         buttons.setMaxSize(Region.USE_PREF_SIZE, 40);
 
@@ -268,11 +269,20 @@ final class MainWindowPane extends StackPane {
     }
 
     /// Recomputes the title-bar background for the current theme and transparency preference.
+    ///
+    /// Also toggles the `vncl-titlebar-transparent` style class so hover tokens can follow the
+    /// translucent variant instead of the primary-container variant.
     private void updateTitleBarBackground() {
+        boolean transparent = Themes.titleBarTransparentProperty().get();
+        titleBar.getStyleClass().remove("vncl-titlebar-transparent");
+        if (transparent) {
+            titleBar.getStyleClass().add("vncl-titlebar-transparent");
+        }
+
         @Nullable ColorScheme colorScheme = Themes.getColorScheme();
         if (colorScheme == null) {
             titleBar.setBackground(null);
-        } else if (Themes.titleBarTransparentProperty().get()) {
+        } else if (transparent) {
             Color surface = colorScheme.getSurface();
             titleBar.setBackground(new Background(new BackgroundFill(
                     new Color(surface.getRed(), surface.getGreen(), surface.getBlue(), 0.5),
