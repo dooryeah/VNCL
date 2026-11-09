@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -23,6 +24,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
@@ -36,8 +38,12 @@ import org.jackhuang.hmcl.ui.animation.TransitionPane;
 import org.jackhuang.hmcl.ui.main.LauncherSettingsPage;
 import org.jackhuang.hmcl.ui.wizard.Navigation;
 import org.jackhuang.hmcl.util.TaskManager;
+import org.jackhuang.hmcl.vncl.VnclPlaytimeManager;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.jackhuang.hmcl.ui.animation.TransitionPane.DEFAULT_DURATION;
 import static org.jackhuang.hmcl.ui.animation.TransitionPane.DEFAULT_INTERPOLATOR;
@@ -181,6 +187,19 @@ final class MainWindowPane extends StackPane {
         decorator.capableDraggingWindow(buttons);
         buttons.setMaxSize(Region.USE_PREF_SIZE, 40);
 
+        // VNCL: a small status dot indicates that Minecraft is currently running.
+        Circle runningDot = new Circle(4);
+        runningDot.getStyleClass().add("vncl-running-dot");
+        StackPane runningIndicator = new StackPane(runningDot);
+        runningIndicator.getStyleClass().add("vncl-running-indicator");
+        runningIndicator.setMouseTransparent(true);
+        runningIndicator.setPrefSize(24, 40);
+        runningIndicator.setAlignment(Pos.CENTER);
+        runningIndicator.visibleProperty().bind(VnclPlaytimeManager.runningProperty());
+        runningIndicator.managedProperty().bind(VnclPlaytimeManager.runningProperty());
+        runningIndicator.setAccessibleText(i18n("vncl.running"));
+        Tooltip.install(runningIndicator, new Tooltip(i18n("vncl.running")));
+
         JFXButton tasksButton = new JFXButton();
         tasksButton.setFocusTraversable(false);
         tasksButton.setAccessibleText(i18n("task.list"));
@@ -191,12 +210,12 @@ final class MainWindowPane extends StackPane {
         });
         decorator.forbidDraggingWindow(tasksButton);
 
-        SVGPath tasksEmptyIcon = SVG.LIST_ALT.createIcon(Themes.titleFillProperty());
+        SVGPath tasksEmptyIcon = SVG.LIST_ALT.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE);
 
         holder.onWeakChangeAndOperate(TaskManager.getInstance().statusProperty(), status -> {
             switch (status) {
                 case IDLE -> tasksButton.setGraphic(tasksEmptyIcon);
-                case PENDING -> tasksButton.setGraphic(SVG.PENDING.createIcon(Themes.titleFillProperty()));
+                case PENDING -> tasksButton.setGraphic(SVG.PENDING.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
                 case RUNNING -> {
                     JFXSpinner tasksSpinner = new JFXSpinner();
                     tasksSpinner.getStyleClass().add("small-spinner");
@@ -212,7 +231,7 @@ final class MainWindowPane extends StackPane {
         JFXButton settingsButton = new JFXButton();
         settingsButton.setFocusTraversable(false);
         settingsButton.setAccessibleText(i18n("settings"));
-        settingsButton.setGraphic(SVG.SETTINGS.createIcon(Themes.titleFillProperty()));
+        settingsButton.setGraphic(SVG.SETTINGS.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
         settingsButton.getStyleClass().add("jfx-decorator-button");
         settingsButton.setOnAction(event -> {
             LauncherSettingsPage page = Controllers.getSettingsPage();
@@ -225,26 +244,26 @@ final class MainWindowPane extends StackPane {
 
         JFXButton helpButton = new JFXButton();
         helpButton.setFocusTraversable(false);
-        helpButton.setGraphic(SVG.HELP.createIcon(Themes.titleFillProperty()));
+        helpButton.setGraphic(SVG.HELP.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
         helpButton.getStyleClass().add("jfx-decorator-button");
         helpButton.setOnAction(event -> FXUtils.openLink(Metadata.CONTACT_URL));
         decorator.forbidDraggingWindow(helpButton);
 
         JFXButton minimizeButton = new JFXButton();
         minimizeButton.setFocusTraversable(false);
-        minimizeButton.setGraphic(SVG.MINIMIZE_CENTER.createIcon(Themes.titleFillProperty()));
+        minimizeButton.setGraphic(SVG.MINIMIZE_CENTER.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
         minimizeButton.getStyleClass().add("jfx-decorator-button");
         minimizeButton.setOnAction(event -> decorator.minimizeWindow());
         decorator.forbidDraggingWindow(minimizeButton);
 
         JFXButton closeButton = new JFXButton();
         closeButton.setFocusTraversable(false);
-        closeButton.setGraphic(SVG.CLOSE.createIcon(Themes.titleFillProperty()));
-        closeButton.getStyleClass().add("jfx-decorator-button");
+        closeButton.setGraphic(SVG.CLOSE.createIcon(SVG.SIZE_TITLE));
+        closeButton.getStyleClass().addAll("jfx-decorator-button", "vncl-window-close");
         closeButton.setOnAction(event -> decorator.closeWindow());
         decorator.forbidDraggingWindow(closeButton);
 
-        buttons.getChildren().setAll(tasksButton, settingsButton, helpButton, minimizeButton, closeButton);
+        buttons.getChildren().setAll(runningIndicator, tasksButton, settingsButton, helpButton, minimizeButton, closeButton);
         return buttons;
     }
 
@@ -303,7 +322,7 @@ final class MainWindowPane extends StackPane {
         if (state.backable()) {
             JFXButton backButton = new JFXButton();
             backButton.setFocusTraversable(false);
-            backButton.setGraphic(SVG.ARROW_BACK.createIcon(Themes.titleFillProperty()));
+            backButton.setGraphic(SVG.ARROW_BACK.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
             backButton.getStyleClass().add("jfx-decorator-button");
             backButton.setOnAction(event -> decorator.back());
             decorator.forbidDraggingWindow(backButton);
@@ -315,7 +334,7 @@ final class MainWindowPane extends StackPane {
 
             JFXButton closeButton = new JFXButton();
             closeButton.setFocusTraversable(false);
-            closeButton.setGraphic((showCloseAsHome ? SVG.HOME : SVG.CLOSE).createIcon(Themes.titleFillProperty()));
+            closeButton.setGraphic((showCloseAsHome ? SVG.HOME : SVG.CLOSE).createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
             closeButton.getStyleClass().add("jfx-decorator-button");
             closeButton.setOnAction(event -> decorator.closeCurrentPage());
             decorator.forbidDraggingWindow(closeButton);
@@ -328,17 +347,7 @@ final class MainWindowPane extends StackPane {
         titleArea.setMinWidth(0);
         decorator.capableDraggingWindow(titleArea);
         HBox.setHgrow(titleArea, Priority.ALWAYS);
-        if (state.titleNode() != null) {
-            titleArea.getChildren().setAll(state.titleNode());
-            StackPane.setMargin(state.titleNode(), new Insets(0, 0, 0, 8));
-        } else if (state.title() != null) {
-            Label titleLabel = new Label(state.title());
-            titleLabel.textFillProperty().bind(Themes.titleFillProperty());
-            titleLabel.getStyleClass().add("jfx-decorator-title");
-            titleLabel.setMinWidth(0);
-            titleLabel.setMouseTransparent(true);
-            titleArea.getChildren().setAll(titleLabel);
-        }
+        titleArea.getChildren().setAll(createTitleContent(state));
 
         decorator.registerTitleBar(titleArea);
 
@@ -354,7 +363,7 @@ final class MainWindowPane extends StackPane {
         if (state.refreshable()) {
             JFXButton refreshButton = new JFXButton();
             refreshButton.setFocusTraversable(false);
-            refreshButton.setGraphic(SVG.REFRESH.createIcon(Themes.titleFillProperty()));
+            refreshButton.setGraphic(SVG.REFRESH.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
             refreshButton.getStyleClass().add("jfx-decorator-button");
             refreshButton.setOnAction(event -> decorator.refresh());
             decorator.forbidDraggingWindow(refreshButton);
@@ -363,6 +372,100 @@ final class MainWindowPane extends StackPane {
         }
 
         return navBar;
+    }
+
+    /// Builds the title-bar content: clickable breadcrumb ancestors followed by the current title.
+    ///
+    /// Only the two most recent ancestors are shown; older ones collapse into an ellipsis. The
+    /// root page has no title of its own, so it is labeled as the home page when it is an ancestor.
+    ///
+    /// @param state the current page state
+    /// @return the title-bar content node
+    private Node createTitleContent(DecoratorPage.State state) {
+        HBox content = new HBox(4);
+        content.setAlignment(Pos.CENTER_LEFT);
+        content.setMinWidth(0);
+
+        List<Node> pages = decorator.getNavigator().getPages();
+        List<Node> ancestors = new ArrayList<>();
+        List<String> titles = new ArrayList<>();
+        for (int i = 0; i < pages.size() - 1; i++) {
+            String title = pageTitle(pages.get(i));
+            if ((title == null || title.isBlank()) && i == 0 && pages.size() > 1) {
+                title = i18n("vncl.home");
+            }
+            if (title != null && !title.isBlank()) {
+                ancestors.add(pages.get(i));
+                titles.add(title);
+            }
+        }
+
+        int firstShown = Math.max(0, ancestors.size() - 2);
+        if (firstShown > 0) {
+            content.getChildren().add(createBreadcrumbSeparator("…"));
+            content.getChildren().add(createBreadcrumbSeparator("›"));
+        }
+        for (int i = firstShown; i < ancestors.size(); i++) {
+            content.getChildren().add(createBreadcrumbLabel(ancestors.get(i), titles.get(i)));
+            content.getChildren().add(createBreadcrumbSeparator("›"));
+        }
+
+        if (state.titleNode() != null) {
+            Node titleNode = state.titleNode();
+            HBox.setMargin(titleNode, new Insets(0, 0, 0, 4));
+            content.getChildren().add(titleNode);
+        } else if (state.title() != null) {
+            Label titleLabel = new Label(state.title());
+            titleLabel.textFillProperty().bind(Themes.titleFillProperty());
+            titleLabel.getStyleClass().add("jfx-decorator-title");
+            titleLabel.setMinWidth(0);
+            titleLabel.setMouseTransparent(true);
+            HBox.setMargin(titleLabel, new Insets(0, 0, 0, 4));
+            content.getChildren().add(titleLabel);
+        }
+
+        return content;
+    }
+
+    /// Returns the title of a decorated page, or null when the page has no title.
+    ///
+    /// @param node the page node
+    /// @return the page title, or null
+    private static @Nullable String pageTitle(Node node) {
+        if (node instanceof DecoratorPage page) {
+            DecoratorPage.State state = page.stateProperty().get();
+            if (state != null && state.title() != null) {
+                return state.title();
+            }
+        }
+        return null;
+    }
+
+    /// Creates a clickable breadcrumb label that navigates back to its page.
+    ///
+    /// @param page the ancestor page
+    /// @param title the label text
+    /// @return the breadcrumb label
+    private Label createBreadcrumbLabel(Node page, String title) {
+        Label label = new Label(title);
+        label.getStyleClass().add("vncl-breadcrumb");
+        label.textFillProperty().bind(Themes.titleFillProperty());
+        label.setMinWidth(0);
+        label.setOnMouseClicked(event -> decorator.getNavigator().closeTo(page));
+        decorator.forbidDraggingWindow(label);
+        return label;
+    }
+
+    /// Creates a non-interactive breadcrumb separator.
+    ///
+    /// @param text the separator text
+    /// @return the separator label
+    private static Label createBreadcrumbSeparator(String text) {
+        Label separator = new Label(text);
+        separator.getStyleClass().add("vncl-breadcrumb-separator");
+        separator.textFillProperty().bind(Themes.titleFillProperty());
+        separator.setMouseTransparent(true);
+        return separator;
     }
 
     /// Produces directional transitions for page-title changes.

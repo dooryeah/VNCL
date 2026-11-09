@@ -2280,3 +2280,44 @@
     -fx-opacity: 0.9;
     -fx-padding: 0 6px 2px 6px;
 }
+/* VNCL title bar refinements */
+.jfx-tool-bar .jfx-decorator-button:hover {
+    -fx-background-color: rgba(128, 128, 128, 0.18);
+}
+
+.jfx-tool-bar .jfx-decorator-button:pressed {
+    -fx-background-color: rgba(128, 128, 128, 0.28);
+}
+
+.jfx-tool-bar .jfx-decorator-button.vncl-window-close:hover {
+    -fx-background-color: #e81123;
+}
+
+.jfx-tool-bar .jfx-decorator-button.vncl-window-close:hover .svg {
+    -fx-fill: white;
+}
+
+.vncl-running-indicator {
+    -fx-padding: 0 6 0 0;
+}
+
+.vncl-running-dot {
+    -fx-fill: #3fb950;
+    -fx-effect: dropshadow(gaussian, rgba(63, 185, 80, 0.65), 6, 0.3, 0, 0);
+}
+
+.vncl-breadcrumb {
+    -fx-cursor: hand;
+    -fx-opacity: 0.65;
+    -fx-font-size: 13px;
+}
+
+.vncl-breadcrumb:hover {
+    -fx-opacity: 1;
+    -fx-underline: true;
+}
+
+.vncl-breadcrumb-separator {
+    -fx-opacity: 0.45;
+    -fx-font-size: 13px;
+}

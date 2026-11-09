@@ -132,6 +132,15 @@ public enum SVG {
 
     public static final double DEFAULT_SIZE = 24;
 
+    /// Standard size for compact inline icons, in pixels.
+    public static final double SIZE_SMALL = 16;
+
+    /// Standard size for title-bar and toolbar icons, in pixels.
+    public static final double SIZE_TITLE = 20;
+
+    /// Standard size for navigation and list icons, in pixels.
+    public static final double SIZE_LARGE = 24;
+
     static void setSize(SVGPath path, double size) {
         double scale = size / DEFAULT_SIZE;
         path.setScaleX(scale);
@@ -163,9 +172,24 @@ public enum SVG {
         return new SVGContainer(this, size);
     }
 
+    /// Creates an icon whose fill is bound to `color`.
+    ///
+    /// @param color the observable fill paint
+    /// @return the icon path
     public SVGPath createIcon(ObservableValue<? extends Paint> color) {
         SVGPath path = createIcon();
         path.fillProperty().bind(color);
+        return path;
+    }
+
+    /// Creates an icon scaled to `size` whose fill is bound to `color`.
+    ///
+    /// @param color the observable fill paint
+    /// @param size the icon size in pixels
+    /// @return the scaled icon path
+    public SVGPath createIcon(ObservableValue<? extends Paint> color, double size) {
+        SVGPath path = createIcon(color);
+        setSize(path, size);
         return path;
     }
 }

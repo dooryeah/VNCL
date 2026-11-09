@@ -15,7 +15,9 @@ import org.jackhuang.hmcl.ui.FXUtils;
 import org.jackhuang.hmcl.ui.animation.ContainerAnimations;
 import org.jackhuang.hmcl.ui.animation.TransitionPane;
 import org.jackhuang.hmcl.ui.wizard.Navigation;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
@@ -124,6 +126,27 @@ public class Navigator extends TransitionPane {
 
     public Node getCurrentPage() {
         return stack.peek();
+    }
+
+    /// Returns an unmodifiable snapshot of the navigation stack, with the root page first.
+    @Unmodifiable
+    public List<Node> getPages() {
+        return List.copyOf(stack);
+    }
+
+    /// Closes the current page repeatedly until `target` becomes the current page.
+    ///
+    /// Does nothing when `target` is not part of the navigation stack.
+    ///
+    /// @param target the page to return to
+    public void closeTo(Node target) {
+        FXUtils.checkFxUserThread();
+        if (!stack.contains(target)) {
+            return;
+        }
+        while (stack.size() > 1 && stack.peek() != target) {
+            close();
+        }
     }
 
     public boolean canGoBack() {

@@ -7,6 +7,8 @@ import com.google.gson.GsonBuilder;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.util.Duration;
@@ -51,6 +53,9 @@ public final class VnclPlaytimeManager {
 
     /// The total playtime visible to the UI, including currently running sessions.
     private static final SimpleLongProperty totalMillis = new SimpleLongProperty();
+
+    /// Whether at least one Minecraft session is currently running.
+    private static final ReadOnlyBooleanWrapper running = new ReadOnlyBooleanWrapper(false);
 
     /// The persisted part of the total (finished sessions plus recovered sessions).
     private static long storedTotalMillis;
@@ -126,6 +131,7 @@ public final class VnclPlaytimeManager {
             activeSessions.add(new ActiveSession(id, now));
             save();
         }
+        running.set(true);
         refreshTotal();
         return id;
     }
@@ -148,8 +154,14 @@ public final class VnclPlaytimeManager {
                     break;
                 }
             }
+            running.set(!activeSessions.isEmpty());
         }
         refreshTotal();
+    }
+
+    /// Returns whether a Minecraft session is currently running.
+    public static ReadOnlyBooleanProperty runningProperty() {
+        return running.getReadOnlyProperty();
     }
 
     /// Returns the observable total playtime in milliseconds.
