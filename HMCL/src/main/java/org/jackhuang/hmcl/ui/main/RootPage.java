@@ -58,7 +58,7 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
     /// Creates the home page and its navigation entries.
     public RootPage() {
         getStyleClass().remove("gray-background");
-        getLeft().getStyleClass().addAll("gray-background", "vncl-glass-flat");
+        getLeft().getStyleClass().add("gray-background");
 
         // first item in left sidebar
         AccountAdvancedListItem accountListItem = new AccountAdvancedListItem();

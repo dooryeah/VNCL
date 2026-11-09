@@ -55,8 +55,6 @@ public final class VnclUiConfig {
     private static final BooleanProperty startupAnimationEnabled = new SimpleBooleanProperty(false);
     private static final StringProperty startupAnimationFile = new SimpleStringProperty("");
     private static final DoubleProperty startupAnimationVolume = new SimpleDoubleProperty(1.0);
-    private static final BooleanProperty glassEnabled = new SimpleBooleanProperty(true);
-    private static final DoubleProperty glassBlur = new SimpleDoubleProperty(36.0);
 
     static {
         load();
@@ -67,18 +65,6 @@ public final class VnclUiConfig {
         startupAnimationEnabled.addListener(observable -> save());
         startupAnimationFile.addListener(observable -> save());
         startupAnimationVolume.addListener(observable -> save());
-        glassEnabled.addListener(observable -> save());
-        glassBlur.addListener(observable -> save());
-    }
-
-    /// Returns whether the frosted-glass surface material is enabled.
-    public static BooleanProperty glassEnabledProperty() {
-        return glassEnabled;
-    }
-
-    /// Returns the blur radius used by the glass backdrop, in pixels.
-    public static DoubleProperty glassBlurProperty() {
-        return glassBlur;
     }
 
     /// Returns whether the startup animation is enabled.
@@ -162,8 +148,6 @@ public final class VnclUiConfig {
             startupAnimationEnabled.set(data.startupAnimationEnabled);
             startupAnimationFile.set(data.startupAnimationFile == null ? "" : data.startupAnimationFile);
             startupAnimationVolume.set(clamp(data.startupAnimationVolume, 0, 1, 1.0));
-            glassEnabled.set(data.glassEnabled);
-            glassBlur.set(clamp(data.glassBlur, 0, 80, 36.0));
         } catch (Exception exception) {
             LOG.warning("Failed to load VNCL appearance settings", exception);
         }
@@ -182,8 +166,6 @@ public final class VnclUiConfig {
                 data.startupAnimationEnabled = startupAnimationEnabled.get();
                 data.startupAnimationFile = startupAnimationFile.get();
                 data.startupAnimationVolume = startupAnimationVolume.get();
-                data.glassEnabled = glassEnabled.get();
-                data.glassBlur = glassBlur.get();
                 GSON.toJson(data, writer);
             }
         } catch (IOException exception) {
@@ -210,7 +192,5 @@ public final class VnclUiConfig {
         boolean startupAnimationEnabled = false;
         String startupAnimationFile = "";
         double startupAnimationVolume = 1.0;
-        boolean glassEnabled = true;
-        double glassBlur = 36.0;
     }
 }

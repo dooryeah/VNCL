@@ -35,8 +35,6 @@ import org.jackhuang.hmcl.ui.animation.ContainerAnimations;
 import org.jackhuang.hmcl.ui.animation.TransitionPane;
 import org.jackhuang.hmcl.ui.main.LauncherSettingsPage;
 import org.jackhuang.hmcl.ui.wizard.Navigation;
-import org.jackhuang.hmcl.vncl.VnclGlassLayer;
-import org.jackhuang.hmcl.vncl.VnclUiConfig;
 import org.jackhuang.hmcl.util.TaskManager;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
@@ -56,9 +54,6 @@ final class MainWindowPane extends StackPane {
 
     /// The content clip, rounded only for normal windows with custom decoration.
     private final Rectangle clip = new Rectangle();
-
-    /// The wallpaper region painted behind the launcher content.
-    private final Region backgroundNode;
 
     /// The frame containing the title bar and current navigation page.
     private final BorderPane frame;
@@ -98,7 +93,7 @@ final class MainWindowPane extends StackPane {
                 Themes.windowTransparentProperty(),
                 Themes.colorSchemeProperty()));
 
-        backgroundNode = createBackgroundNode();
+        Region backgroundNode = createBackgroundNode();
 
         frame = new BorderPane();
         frame.getStyleClass().add("jfx-decorator");
@@ -111,7 +106,7 @@ final class MainWindowPane extends StackPane {
         windowButtons = createWindowButtons();
         titleBar = new BorderPane();
         titleBar.setPickOnBounds(false);
-        titleBar.getStyleClass().addAll("jfx-tool-bar", "vncl-glass-flat");
+        titleBar.getStyleClass().add("jfx-tool-bar");
         titleBar.setRight(windowButtons);
 
         navBarPane = new TransitionPane();
@@ -131,12 +126,6 @@ final class MainWindowPane extends StackPane {
         decorator.capableDraggingWindow(titleBar);
 
         getChildren().setAll(backgroundNode, frame);
-
-        // VNCL: frosted-glass surfaces show a blurred copy of the wallpaper behind them.
-        if (VnclUiConfig.glassEnabledProperty().get() && VnclGlassLayer.isSupported()) {
-            getStyleClass().add("vncl-glass-mode");
-            getChildren().add(1, new VnclGlassLayer(this, backgroundNode));
-        }
     }
 
     /// Moves the custom title bar into or out of the native dragging header.
@@ -271,11 +260,8 @@ final class MainWindowPane extends StackPane {
                     CornerRadii.EMPTY,
                     Insets.EMPTY)));
         } else {
-            Color surface = colorScheme.getPrimaryContainer();
-            // VNCL: let the frosted backdrop show through the title bar when glass is enabled.
-            double alpha = VnclUiConfig.glassEnabledProperty().get() ? 0.20 : 1.0;
             titleBar.setBackground(new Background(new BackgroundFill(
-                    new Color(surface.getRed(), surface.getGreen(), surface.getBlue(), alpha),
+                    colorScheme.getPrimaryContainer(),
                     CornerRadii.EMPTY,
                     Insets.EMPTY)));
         }

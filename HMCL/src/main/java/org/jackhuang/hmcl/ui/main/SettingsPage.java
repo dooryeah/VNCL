@@ -137,27 +137,6 @@ public final class SettingsPage extends ScrollPane {
             addSection(rootPane, i18n("vncl.settings.appearance"), appearanceList,
                     "vncl appearance 外观 圆角 圆角半径 密度 间距 字号 预设");
 
-            // VNCL frosted-glass material
-            ComponentList glassList = new ComponentList();
-            {
-                LineSwitch glassEnabled = new LineSwitch();
-                glassEnabled.setTitle(i18n("vncl.glass.enabled"));
-                glassEnabled.selectedProperty().bindBidirectional(VnclUiConfig.glassEnabledProperty());
-                glassList.getContent().add(glassEnabled);
-
-                glassList.getContent().add(createSliderRow(
-                        i18n("vncl.glass.blur"),
-                        i18n("vncl.glass.blur.subtitle"),
-                        VnclUiConfig.glassBlurProperty(), 0, 60, 2, true));
-
-                Label glassHint = new Label(i18n("vncl.glass.restart_hint"));
-                glassHint.getStyleClass().add("subtitle-label");
-                glassHint.setWrapText(true);
-                glassList.getContent().add(glassHint);
-            }
-            addSection(rootPane, i18n("vncl.glass.title"), glassList,
-                    "vncl glass 液态玻璃 磨砂 模糊 blur");
-
             // VNCL startup animation
             ComponentList startupList = new ComponentList();
             {
@@ -549,8 +528,6 @@ public final class SettingsPage extends ScrollPane {
     /// Adds a settings section and registers it for search filtering.
     private void addSection(VBox rootPane, String title, Node body, String keywords) {
         Node titleNode = ComponentList.createComponentListTitle(title);
-        // VNCL: section cards participate in the frosted-glass backdrop.
-        body.getStyleClass().add("vncl-glass-card");
         sections.add(new Section(titleNode, body, title + " " + keywords));
         rootPane.getChildren().addAll(titleNode, body);
     }
