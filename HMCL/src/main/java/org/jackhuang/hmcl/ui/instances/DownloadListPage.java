@@ -23,6 +23,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import org.jackhuang.hmcl.addon.RemoteAddon;
+import org.jackhuang.hmcl.vncl.VnclEmptyState;
+import org.jackhuang.hmcl.vncl.VnclSkeletonList;
 import org.jackhuang.hmcl.addon.AddonProjectInfo;
 import org.jackhuang.hmcl.addon.AddonProjectInfoRegistry;
 import org.jackhuang.hmcl.addon.RemoteAddonRepository;
@@ -35,6 +37,7 @@ import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.task.Task;
 import org.jackhuang.hmcl.ui.Controllers;
 import org.jackhuang.hmcl.ui.FXUtils;
+import org.jackhuang.hmcl.ui.SVG;
 import org.jackhuang.hmcl.ui.WeakListenerHolder;
 import org.jackhuang.hmcl.ui.construct.*;
 import org.jackhuang.hmcl.ui.decorator.DecoratorPage;
@@ -505,9 +508,17 @@ public class DownloadListPage extends Control implements DecoratorPage {
             }
 
             SpinnerPane spinnerPane = new SpinnerPane();
+            spinnerPane.setSkeleton(new VnclSkeletonList(6));
+            spinnerPane.setEmptyState(new VnclEmptyState(
+                    SVG.SEARCH, i18n("search.no_results_found"), i18n("download.failed.empty"), null));
             pane.setCenter(spinnerPane);
             {
                 spinnerPane.loadingProperty().bind(getSkinnable().loadingProperty());
+                spinnerPane.emptyProperty().bind(Bindings.createBooleanBinding(
+                        () -> !getSkinnable().isFailed() && !getSkinnable().isLoading()
+                                && getSkinnable().pageCount.get() >= 0 && getSkinnable().items.isEmpty(),
+                        getSkinnable().failedProperty(), getSkinnable().loadingProperty(),
+                        getSkinnable().pageCount, getSkinnable().items));
                 spinnerPane.failedReasonProperty().bind(
                     Bindings.createStringBinding(() -> {
                         if (getSkinnable().isFailed()) {

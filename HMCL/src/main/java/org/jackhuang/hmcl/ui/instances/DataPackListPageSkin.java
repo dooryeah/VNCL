@@ -174,6 +174,7 @@ final class DataPackListPageSkin extends SkinBase<DataPackListPage> {
             SpinnerPane center = new SpinnerPane();
             ComponentList.setVgrow(center, Priority.ALWAYS);
             center.loadingProperty().bind(skinnable.loadingProperty());
+            center.skeletonProperty().bind(skinnable.skeletonProperty());
 
             listView.setCellFactory(x -> new DataPackInfoListCell(listView, getSkinnable().readOnly));
             listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

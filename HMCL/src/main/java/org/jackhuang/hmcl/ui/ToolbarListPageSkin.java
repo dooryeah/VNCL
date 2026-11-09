@@ -48,6 +48,9 @@ public abstract class ToolbarListPageSkin<E, P extends ListPageBase<E>> extends 
         spinnerPane.loadingProperty().bind(skinnable.loadingProperty());
         spinnerPane.failedReasonProperty().bind(skinnable.failedReasonProperty());
         spinnerPane.onFailedActionProperty().bind(skinnable.onFailedActionProperty());
+        spinnerPane.skeletonProperty().bind(skinnable.skeletonProperty());
+        spinnerPane.emptyStateProperty().bind(skinnable.emptyStateProperty());
+        spinnerPane.emptyProperty().bind(skinnable.emptyProperty());
 
         ComponentList.setVgrow(spinnerPane, Priority.ALWAYS);
 
@@ -81,6 +84,7 @@ public abstract class ToolbarListPageSkin<E, P extends ListPageBase<E>> extends 
         ret.getStyleClass().add("jfx-decorator-button");
         ret.setGraphic(svg.createIcon(20));
         FXUtils.installFastTooltip(ret, tooltip);
+        ret.setAccessibleText(tooltip);
         ret.setOnAction(e -> onClick.run());
         return ret;
     }

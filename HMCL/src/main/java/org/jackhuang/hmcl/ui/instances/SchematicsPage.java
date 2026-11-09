@@ -844,6 +844,7 @@ public final class SchematicsPage extends ListPageBase<SchematicsPage.Item> {
                 SpinnerPane center = new SpinnerPane();
                 ComponentList.setVgrow(center, Priority.ALWAYS);
                 center.loadingProperty().bind(skinnable.loadingProperty());
+                center.skeletonProperty().bind(skinnable.skeletonProperty());
 
                 listView.setCellFactory(x -> new Cell(listView));
                 listView.setSelectionModel(new NoneMultipleSelectionModel<>());

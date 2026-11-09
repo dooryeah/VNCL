@@ -246,6 +246,7 @@ final class MainWindowPane extends StackPane {
         JFXButton helpButton = new JFXButton();
         helpButton.setFocusTraversable(false);
         helpButton.setGraphic(SVG.HELP.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
+        helpButton.setAccessibleText(i18n("help"));
         helpButton.getStyleClass().add("jfx-decorator-button");
         helpButton.setOnAction(event -> FXUtils.openLink(Metadata.CONTACT_URL));
         decorator.forbidDraggingWindow(helpButton);
@@ -253,12 +254,14 @@ final class MainWindowPane extends StackPane {
         JFXButton minimizeButton = new JFXButton();
         minimizeButton.setFocusTraversable(false);
         minimizeButton.setGraphic(SVG.MINIMIZE_CENTER.createIcon(Themes.titleFillProperty(), SVG.SIZE_TITLE));
+        minimizeButton.setAccessibleText(i18n("button.minimize"));
         minimizeButton.getStyleClass().add("jfx-decorator-button");
         minimizeButton.setOnAction(event -> decorator.minimizeWindow());
         decorator.forbidDraggingWindow(minimizeButton);
 
         JFXButton closeButton = new JFXButton();
         closeButton.setFocusTraversable(false);
+        closeButton.setAccessibleText(i18n("button.close"));
         closeButton.setGraphic(SVG.CLOSE.createIcon(SVG.SIZE_TITLE));
         closeButton.getStyleClass().addAll("jfx-decorator-button", "vncl-window-close");
         closeButton.setOnAction(event -> decorator.closeWindow());

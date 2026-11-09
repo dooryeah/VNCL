@@ -455,6 +455,7 @@ public final class ScreenshotsPage extends ListPageBase<ScreenshotsPage.Screensh
                 SpinnerPane center = new SpinnerPane();
                 ComponentList.setVgrow(center, Priority.ALWAYS);
                 center.loadingProperty().bind(skinnable.loadingProperty());
+                center.skeletonProperty().bind(skinnable.skeletonProperty());
 
                 listView.setCellFactory(x -> new ScreenshotCell(listView, skinnable));
                 listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

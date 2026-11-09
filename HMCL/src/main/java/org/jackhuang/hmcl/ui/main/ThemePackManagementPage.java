@@ -571,6 +571,9 @@ public final class ThemePackManagementPage extends ListPageBase<ThemePackManager
             ComponentList.setVgrow(center, Priority.ALWAYS);
             center.loadingProperty().bind(skinnable.loadingProperty());
             center.failedReasonProperty().bind(skinnable.failedReasonProperty());
+            center.skeletonProperty().bind(skinnable.skeletonProperty());
+            center.emptyStateProperty().bind(skinnable.emptyStateProperty());
+            center.emptyProperty().bind(skinnable.emptyProperty());
             center.onFailedActionProperty().bind(skinnable.onFailedActionProperty());
 
             listView.setPadding(Insets.EMPTY);

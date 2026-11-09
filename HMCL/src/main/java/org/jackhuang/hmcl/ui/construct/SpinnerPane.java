@@ -108,6 +108,117 @@ public class SpinnerPane extends Control {
 
     private StringProperty failedReason;
 
+    /// Returns the optional skeleton shown instead of the spinner while loading.
+    public ObjectProperty<@Nullable Node> skeletonProperty() {
+        if (skeleton == null) {
+            skeleton = new ObjectPropertyBase<>() {
+                @Override
+                public Object getBean() {
+                    return SpinnerPane.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "skeleton";
+                }
+
+                @Override
+                protected void invalidated() {
+                    updateContent();
+                }
+            };
+        }
+        return skeleton;
+    }
+
+    /// Returns the skeleton node, or null when the spinner should be used.
+    public @Nullable Node getSkeleton() {
+        return skeleton != null ? skeleton.get() : null;
+    }
+
+    /// Sets the skeleton node shown while loading.
+    ///
+    /// @param skeleton the skeleton node, or null to use the spinner
+    public void setSkeleton(@Nullable Node skeleton) {
+        skeletonProperty().set(skeleton);
+    }
+
+    private ObjectProperty<@Nullable Node> skeleton;
+
+    /// Returns the optional empty-state node shown instead of the failed-reason text.
+    public ObjectProperty<@Nullable Node> emptyStateProperty() {
+        if (emptyState == null) {
+            emptyState = new ObjectPropertyBase<>() {
+                @Override
+                public Object getBean() {
+                    return SpinnerPane.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "emptyState";
+                }
+
+                @Override
+                protected void invalidated() {
+                    updateContent();
+                }
+            };
+        }
+        return emptyState;
+    }
+
+    /// Returns the empty-state node, or null when the plain text should be used.
+    public @Nullable Node getEmptyState() {
+        return emptyState != null ? emptyState.get() : null;
+    }
+
+    /// Sets the empty-state node shown when a failed/empty reason is present.
+    ///
+    /// @param emptyState the empty-state node, or null
+    public void setEmptyState(@Nullable Node emptyState) {
+        emptyStateProperty().set(emptyState);
+    }
+
+    private ObjectProperty<@Nullable Node> emptyState;
+
+    private BooleanProperty empty;
+
+    /// Returns whether the pane represents an empty result rather than a failure.
+    public BooleanProperty emptyProperty() {
+        if (empty == null) {
+            empty = new BooleanPropertyBase() {
+                @Override
+                public Object getBean() {
+                    return SpinnerPane.this;
+                }
+
+                @Override
+                public String getName() {
+                    return "empty";
+                }
+
+                @Override
+                protected void invalidated() {
+                    updateContent();
+                }
+            };
+        }
+        return empty;
+    }
+
+    /// Returns whether the pane represents an empty result.
+    public boolean isEmpty() {
+        return empty != null && empty.get();
+    }
+
+    /// Sets whether the pane represents an empty result.
+    ///
+    /// @param empty whether the pane is empty
+    public void setEmpty(boolean empty) {
+        emptyProperty().set(empty);
+    }
+
     public StringProperty failedReasonProperty() {
         if (failedReason == null)
             failedReason = new StringPropertyBase() {
@@ -187,7 +298,9 @@ public class SpinnerPane extends Control {
 
         private StackPane contentPane;
         private StackPane spinnerPane;
+        private StackPane skeletonPane;
         private StackPane failedPane;
+        private StackPane emptyPane;
         private Label failedReasonLabel;
 
         /// Selects the visible state and passes its cache preference to the transition target.
@@ -196,21 +309,42 @@ public class SpinnerPane extends Control {
 
             Node nextContent;
             if (control.isLoading()) {
-                if (spinnerPane == null) {
-                    spinnerPane = new StackPane(new JFXSpinner());
-                    spinnerPane.getStyleClass().add("notice-pane");
-                    TransitionPane.setCacheAllowed(spinnerPane, false);
+                @Nullable Node skeleton = control.getSkeleton();
+                if (skeleton != null) {
+                    if (skeletonPane == null) {
+                        skeletonPane = new StackPane();
+                        skeletonPane.getStyleClass().add("notice-pane");
+                        TransitionPane.setCacheAllowed(skeletonPane, false);
+                    }
+                    skeletonPane.getChildren().setAll(skeleton);
+                    nextContent = skeletonPane;
+                } else {
+                    if (spinnerPane == null) {
+                        spinnerPane = new StackPane(new JFXSpinner());
+                        spinnerPane.getStyleClass().add("notice-pane");
+                        TransitionPane.setCacheAllowed(spinnerPane, false);
+                    }
+                    nextContent = spinnerPane;
                 }
-                nextContent = spinnerPane;
             } else if (control.getFailedReason() != null) {
-                if (failedPane == null) {
-                    failedReasonLabel = new Label();
-                    failedPane = new StackPane(failedReasonLabel);
-                    failedPane.getStyleClass().add("notice-pane");
-                    FXUtils.onClicked(failedPane, () -> control.fireEvent(new Event(SpinnerPane.FAILED_ACTION)));
+                @Nullable Node emptyState = control.getEmptyState();
+                if (control.isEmpty() && emptyState != null) {
+                    if (emptyPane == null) {
+                        emptyPane = new StackPane();
+                        emptyPane.getStyleClass().add("notice-pane");
+                    }
+                    emptyPane.getChildren().setAll(emptyState);
+                    nextContent = emptyPane;
+                } else {
+                    if (failedPane == null) {
+                        failedReasonLabel = new Label();
+                        failedPane = new StackPane(failedReasonLabel);
+                        failedPane.getStyleClass().add("notice-pane");
+                        FXUtils.onClicked(failedPane, () -> control.fireEvent(new Event(SpinnerPane.FAILED_ACTION)));
+                    }
+                    failedReasonLabel.setText(control.getFailedReason());
+                    nextContent = failedPane;
                 }
-                failedReasonLabel.setText(control.getFailedReason());
-                nextContent = failedPane;
             } else {
                 if (contentPane == null) {
                     contentPane = new StackPane();

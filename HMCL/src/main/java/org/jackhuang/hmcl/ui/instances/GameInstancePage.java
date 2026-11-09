@@ -9,6 +9,8 @@ import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.event.EventType;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import org.jackhuang.hmcl.game.GameInstanceID;
 import org.jackhuang.hmcl.game.HMCLGameInstance;
 import org.jackhuang.hmcl.game.HMCLGameRepository;
@@ -54,6 +56,8 @@ public class GameInstancePage extends DecoratorAnimatedPage implements Decorator
     /// The screenshots tab bound to the current game instance.
     private final TabItem<ScreenshotsPage> screenshotsTab;
     private final TransitionPane transitionPane = new TransitionPane();
+    /// Optional cover banner shown above the instance tabs.
+    private final VnclInstanceBanner banner = new VnclInstanceBanner();
     private final BooleanProperty currentInstanceUpgradable = new SimpleBooleanProperty();
     private final ObjectProperty<HMCLGameInstance.@Nullable Optional> instance =
             new SimpleObjectProperty<>(this, "instance");
@@ -115,6 +119,7 @@ public class GameInstancePage extends DecoratorAnimatedPage implements Decorator
                 return;
             }
             HMCLGameInstance gameInstance = current.instance();
+            banner.setInstance(gameInstance);
             currentInstanceUpgradable.set(gameInstance != null && gameInstance.isModpack());
             if (gameInstance != null) {
                 preferredInstanceId = gameInstance.getId();
@@ -151,6 +156,7 @@ public class GameInstancePage extends DecoratorAnimatedPage implements Decorator
         managementList.getContent().setAll(
                 new IconedMenuItem(SVG.ROCKET_LAUNCH, i18n("instance.launch.test"), this::testGame, managementPopup),
                 new IconedMenuItem(SVG.SCRIPT, i18n("instance.launch_script"), this::generateLaunchScript, managementPopup),
+                new IconedMenuItem(SVG.STYLE, i18n("vncl.instance.personalize"), this::openPersonalization, managementPopup),
                 new MenuSeparator(),
                 new IconedMenuItem(SVG.EDIT, i18n("instance.manage.rename"), this::rename, managementPopup),
                 new IconedMenuItem(SVG.FOLDER_COPY, i18n("instance.manage.duplicate"), this::duplicate, managementPopup),
@@ -186,7 +192,9 @@ public class GameInstancePage extends DecoratorAnimatedPage implements Decorator
                         State.fromTitle(i18n("instance.manage.manage.title", getInstanceId()), -1),
                 instance));
 
-        setContent(transitionPane);
+        VBox content = new VBox(banner, transitionPane);
+        VBox.setVgrow(transitionPane, Priority.ALWAYS);
+        setContent(content);
     }
 
     /// Observes snapshot publications for the repository associated with the current page context.
@@ -235,6 +243,15 @@ public class GameInstancePage extends DecoratorAnimatedPage implements Decorator
 
     public void showInstanceSettings() {
         tabController.selectTab(gameSettingsTab, false);
+    }
+
+    /// Opens the VNCL-only instance personalization dialog.
+    private void openPersonalization() {
+        HMCLGameInstance gameInstance = requireGameInstance();
+        if (gameInstance != null) {
+            Controllers.dialog(new VnclInstanceStyleDialog(gameInstance, () -> {
+            }));
+        }
     }
 
     public void setInstance(GameInstanceID instanceId, HMCLGameRepository repository) {

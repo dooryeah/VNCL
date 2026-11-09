@@ -400,6 +400,7 @@ public final class ResourcePackListPage extends ListPageBase<ResourcePackListPag
                 SpinnerPane center = new SpinnerPane();
                 ComponentList.setVgrow(center, Priority.ALWAYS);
                 center.loadingProperty().bind(control.loadingProperty());
+                center.skeletonProperty().bind(control.skeletonProperty());
 
                 listView.setCellFactory(x -> new ResourcePackListCell(listView, control));
                 listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

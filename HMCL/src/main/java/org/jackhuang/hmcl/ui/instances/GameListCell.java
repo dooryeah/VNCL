@@ -13,6 +13,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
+import org.jackhuang.hmcl.ui.Controllers;
 import org.jackhuang.hmcl.ui.FXUtils;
 import org.jackhuang.hmcl.ui.SVG;
 import org.jackhuang.hmcl.ui.construct.*;
@@ -96,6 +97,7 @@ public final class GameListCell extends ListCell<GameListItem> {
                     item.update();
             });
             FXUtils.installFastTooltip(btnUpgrade, i18n("instance.update"));
+            btnUpgrade.setAccessibleText(i18n("instance.update"));
             right.getChildren().add(btnUpgrade);
 
             this.btnEditInstance = FXUtils.newToggleButton4(SVG.SETTINGS);
@@ -105,6 +107,7 @@ public final class GameListCell extends ListCell<GameListItem> {
                     item.modifyGameSettings();
             });
             FXUtils.installFastTooltip(btnEditInstance, i18n("instance.manage.manage"));
+            btnEditInstance.setAccessibleText(i18n("instance.manage.manage"));
             right.getChildren().add(btnEditInstance);
 
             this.btnManage = FXUtils.newToggleButton4(SVG.MORE_VERT);
@@ -118,6 +121,7 @@ public final class GameListCell extends ListCell<GameListItem> {
                 popup.show(root, vPosition, JFXPopup.PopupHPosition.RIGHT, 0, vPosition == JFXPopup.PopupVPosition.TOP ? root.getHeight() : -root.getHeight());
             });
             FXUtils.installFastTooltip(btnManage, i18n("settings.game.management"));
+            btnManage.setAccessibleText(i18n("settings.game.management"));
             right.getChildren().add(btnManage);
         }
 
@@ -185,6 +189,10 @@ public final class GameListCell extends ListCell<GameListItem> {
                 new IconedMenuItem(SVG.FOLDER_COPY, i18n("instance.manage.duplicate"), item::duplicate, popup),
                 new IconedMenuItem(SVG.DELETE, i18n("instance.manage.remove"), item::remove, popup),
                 new IconedMenuItem(SVG.OUTPUT, i18n("modpack.export"), item::export, popup),
+                new MenuSeparator(),
+                new IconedMenuItem(SVG.STYLE, i18n("vncl.instance.personalize"),
+                        () -> Controllers.dialog(new VnclInstanceStyleDialog(item.getGameInstance(), () -> {
+                        })), popup),
                 new MenuSeparator(),
                 new IconedMenuItem(SVG.FOLDER_OPEN, i18n("folder.game"), item::browse, popup));
         return popup;

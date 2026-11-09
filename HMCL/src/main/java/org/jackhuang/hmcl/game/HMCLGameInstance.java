@@ -5,8 +5,10 @@ package org.jackhuang.hmcl.game;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectPropertyBase;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.image.Image;
 import org.jackhuang.hmcl.Metadata;
 import org.jackhuang.hmcl.addon.mod.ModLoaderType;
@@ -23,6 +25,7 @@ import org.jackhuang.hmcl.util.gson.JsonUtils;
 import org.jackhuang.hmcl.util.io.FileUtils;
 import org.jackhuang.hmcl.util.platform.SystemInfo;
 import org.jackhuang.hmcl.util.versioning.GameVersionNumber;
+import org.jackhuang.hmcl.vncl.VnclInstanceStyle;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
@@ -365,8 +368,163 @@ public class HMCLGameInstance extends DefaultGameInstance {
         }
     }
 
-    /// Soft-cached icon image for this instance id.
+    /// Returns the first custom cover image found in this instance's root directory.
     ///
+    /// @return the cover file, or null when no supported cover image exists
+    public @Nullable Path getCoverFile() {
+        for (String extension : FXUtils.IMAGE_EXTENSIONS) {
+            Path file = getInstanceRoot().resolve("cover." + extension);
+            if (Files.exists(file)) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    /// Replaces this instance's custom cover image and invalidates the cached image.
+    ///
+    /// @param coverFile the source image
+    /// @throws IOException              if the image cannot be copied
+    /// @throws IllegalArgumentException if the image extension is unsupported
+    public void setCoverFile(Path coverFile) throws IOException {
+        String extension = FileUtils.getExtension(coverFile).toLowerCase(Locale.ROOT);
+        if (!FXUtils.IMAGE_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("Unsupported cover file: " + extension);
+        }
+
+        clearCoverFiles();
+        FileUtils.copyFile(coverFile, getInstanceRoot().resolve("cover." + extension));
+        invalidateCoverImage();
+    }
+
+    /// Deletes this instance's custom cover image and invalidates the cached image.
+    public void deleteCoverFile() {
+        clearCoverFiles();
+        invalidateCoverImage();
+    }
+
+    private void clearCoverFiles() {
+        for (String extension : FXUtils.IMAGE_EXTENSIONS) {
+            Path file = getInstanceRoot().resolve("cover." + extension);
+            try {
+                Files.deleteIfExists(file);
+            } catch (IOException e) {
+                LOG.warning("Failed to delete instance cover file: " + file, e);
+            }
+        }
+    }
+
+    /// Cached VNCL-only instance style, or null before first access.
+    private @Nullable ObjectProperty<VnclInstanceStyle> vnclStyle;
+
+    /// Returns the VNCL-only style of this instance.
+    ///
+    /// @return the instance style
+    public VnclInstanceStyle getVnclStyle() {
+        return vnclStyleProperty().get();
+    }
+
+    /// Returns the observable VNCL-only style of this instance.
+    ///
+    /// @return the style property
+    public ReadOnlyObjectProperty<VnclInstanceStyle> vnclStyleProperty() {
+        if (vnclStyle == null) {
+            vnclStyle = new SimpleObjectProperty<>(this, "vnclStyle",
+                    VnclInstanceStyle.load(vnclStyleFile()));
+        }
+        return vnclStyle;
+    }
+
+    /// Saves and publishes a VNCL-only style for this instance.
+    ///
+    /// @param style the new style
+    /// @throws IOException if the style file cannot be written
+    public void setVnclStyle(VnclInstanceStyle style) throws IOException {
+        VnclInstanceStyle normalized = style.normalized();
+        normalized.save(vnclStyleFile());
+        if (vnclStyle == null) {
+            vnclStyleProperty();
+        }
+        Objects.requireNonNull(vnclStyle).set(normalized);
+    }
+
+    /// Returns the VNCL style file for this instance.
+    ///
+    /// @return the style JSON path
+    private Path vnclStyleFile() {
+        return getRepository().getLayout().getInstanceMetadataDirectory(getId()).resolve("vncl-instance.json");
+    }
+
+    /// Soft-cached cover image for this instance id.
+    private @Nullable WeakCachedCoverImageProperty coverImage;
+
+    /// Returns the observable cover image for this instance.
+    ///
+    /// @return the cover image property, whose value may be null
+    public ReadOnlyObjectProperty<Image> coverImageProperty() {
+        if (coverImage == null) {
+            coverImage = new WeakCachedCoverImageProperty();
+        }
+        return coverImage;
+    }
+
+    /// Returns the current cover image, or null when the instance has no cover.
+    public @Nullable Image getCoverImage() {
+        return coverImageProperty().get();
+    }
+
+    /// Drops the cached cover image and notifies observers.
+    public void invalidateCoverImage() {
+        ((WeakCachedCoverImageProperty) coverImageProperty()).invalidate();
+    }
+
+    /// Soft-cached read-only cover property.
+    private final class WeakCachedCoverImageProperty extends ReadOnlyObjectPropertyBase<Image> {
+        private @Nullable WeakReference<Image> cache;
+
+        @Override
+        public Object getBean() {
+            return HMCLGameInstance.this;
+        }
+
+        @Override
+        public String getName() {
+            return "coverImage";
+        }
+
+        @Override
+        public @Nullable Image get() {
+            WeakReference<Image> current = cache;
+            Image image = current != null ? current.get() : null;
+            if (image != null) {
+                return image;
+            }
+
+            image = computeCoverImage();
+            cache = image != null ? new WeakReference<>(image) : null;
+            return image;
+        }
+
+        private @Nullable Image computeCoverImage() {
+            Path file = getCoverFile();
+            if (file == null) {
+                return null;
+            }
+            try {
+                return FXUtils.loadImage(file, 1280, 720, true, true);
+            } catch (Exception e) {
+                LOG.warning("Failed to load instance cover for " + getId(), e);
+                return null;
+            }
+        }
+
+        void invalidate() {
+            cache = null;
+            fireValueChangedEvent();
+        }
+    }
+
+    /// Soft-cached icon image for this instance id.
     /// Shared across COW snapshot wrappers. The computed [Image] is retained only via a
     /// [WeakReference], so it can be reclaimed under memory pressure when nothing else holds it.
     private @Nullable WeakCachedIconImageProperty iconImage;

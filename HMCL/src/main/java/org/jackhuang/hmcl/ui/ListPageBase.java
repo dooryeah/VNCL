@@ -7,7 +7,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.Control;
+import org.jackhuang.hmcl.vncl.VnclSkeletonList;
+import org.jetbrains.annotations.Nullable;
 
 import static org.jackhuang.hmcl.ui.construct.SpinnerPane.FAILED_ACTION;
 
@@ -16,6 +19,15 @@ public class ListPageBase<T> extends Control {
     private final ListProperty<T> items = new SimpleListProperty<>(this, "items", FXCollections.observableArrayList());
     private final BooleanProperty loading = new SimpleBooleanProperty(this, "loading", false);
     private final StringProperty failedReason = new SimpleStringProperty(this, "failed");
+
+    /// Skeleton shown instead of the spinner while the page is loading.
+    private final ObjectProperty<Node> skeleton = new SimpleObjectProperty<>(this, "skeleton", new VnclSkeletonList(6));
+
+    /// Optional empty-state node shown instead of the plain failed-reason text.
+    private final ObjectProperty<@Nullable Node> emptyState = new SimpleObjectProperty<>(this, "emptyState");
+
+    /// Whether the page is empty rather than failed.
+    private final BooleanProperty empty = new SimpleBooleanProperty(this, "empty", false);
 
     public ObservableList<T> getItems() {
         return items.get();
@@ -51,6 +63,40 @@ public class ListPageBase<T> extends Control {
 
     public void setFailedReason(String failedReason) {
         this.failedReason.set(failedReason);
+    }
+
+    /// Returns the skeleton node shown while loading.
+    public ObjectProperty<Node> skeletonProperty() {
+        return skeleton;
+    }
+
+    /// Returns the optional empty-state node.
+    public ObjectProperty<@Nullable Node> emptyStateProperty() {
+        return emptyState;
+    }
+
+    /// Returns whether the page is empty.
+    public BooleanProperty emptyProperty() {
+        return empty;
+    }
+
+    /// Returns whether the page is empty.
+    public boolean isEmpty() {
+        return empty.get();
+    }
+
+    /// Sets whether the page is empty.
+    ///
+    /// @param empty whether the page has no items
+    public void setEmpty(boolean empty) {
+        this.empty.set(empty);
+    }
+
+    /// Sets the empty-state node shown instead of the plain failed-reason text.
+    ///
+    /// @param emptyState the empty-state node, or null to fall back to text
+    public void setEmptyState(@Nullable Node emptyState) {
+        this.emptyState.set(emptyState);
     }
 
     public final ObjectProperty<EventHandler<Event>> onFailedActionProperty() {

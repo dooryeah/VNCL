@@ -2380,3 +2380,129 @@
     -fx-opacity: 0.45;
     -fx-font-size: 13px;
 }
+/* VNCL focus visibility */
+.jfx-button:focused,
+.jfx-button-border:focused,
+.jfx-button-raised:focused,
+.jfx-button-raised-round:focused,
+.jfx-tool-bar-button:focused {
+    -fx-border-color: -monet-primary;
+    -fx-border-width: 2px;
+    -fx-border-insets: -2px;
+    -fx-border-radius: 10px;
+}
+
+.jfx-tool-bar .jfx-decorator-button:focused {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.list-cell:focused,
+.jfx-list-cell:focused {
+    -fx-border-color: -monet-primary;
+    -fx-border-width: 2px;
+    -fx-border-insets: -2px;
+    -fx-border-radius: 10px;
+}
+
+.advanced-list-item:focused > .rippler-container {
+    -fx-border-color: -monet-primary;
+    -fx-border-width: 2px;
+    -fx-border-insets: -2px;
+    -fx-border-radius: 10px;
+}
+/* VNCL empty states and skeletons */
+.vncl-empty-state {
+    -fx-padding: 36 24 36 24;
+    -fx-alignment: center;
+}
+
+.vncl-empty-icon .svg {
+    -fx-fill: transparent;
+    -fx-stroke: -monet-on-surface-variant;
+    -fx-stroke-width: 1.2;
+}
+
+.vncl-empty-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: BOLD;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.vncl-empty-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: -monet-on-surface-variant;
+    -fx-text-alignment: center;
+}
+
+.vncl-skeleton-row {
+    -fx-padding: 10 16 10 16;
+    -fx-alignment: center-left;
+}
+
+.vncl-skeleton-icon {
+    -fx-min-width: 32px;
+    -fx-pref-width: 32px;
+    -fx-max-width: 32px;
+    -fx-min-height: 32px;
+    -fx-pref-height: 32px;
+    -fx-max-height: 32px;
+    -fx-background-color: -monet-surface-container-high;
+    -fx-background-radius: 8px;
+}
+
+.vncl-skeleton-bar {
+    -fx-min-height: 10px;
+    -fx-pref-height: 10px;
+    -fx-background-color: -monet-surface-container-high;
+    -fx-background-radius: 4px;
+}
+
+.vncl-skeleton-title {
+    -fx-min-width: 160px;
+    -fx-pref-width: 180px;
+}
+
+.vncl-skeleton-subtitle {
+    -fx-min-width: 100px;
+    -fx-pref-width: 120px;
+    -fx-min-height: 8px;
+    -fx-pref-height: 8px;
+}
+/* VNCL instance personalization */
+.vncl-instance-banner {
+    -fx-background-color: -monet-surface-container;
+    -fx-background-radius: 0;
+}
+
+.vncl-instance-banner-cover {
+    -fx-background-radius: 0;
+}
+
+.vncl-instance-banner-scrim {
+    -fx-background-radius: 0;
+}
+
+.vncl-instance-banner-icon {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 10, 0.2, 0, 2);
+}
+
+.vncl-instance-banner-title {
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: BOLD;
+    -fx-padding: 4 10 4 10;
+    -fx-background-color: rgba(0, 0, 0, 0.38);
+    -fx-background-radius: 8px;
+}
+
+.vncl-instance-preview {
+    -fx-background-color: -monet-surface-container-high;
+    -fx-background-radius: 10px;
+}
+
+.vncl-instance-preview-title {
+    -fx-text-fill: -monet-on-surface;
+    -fx-font-size: 16px;
+    -fx-font-weight: BOLD;
+}

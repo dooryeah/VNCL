@@ -28,6 +28,7 @@ import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.task.Task;
 import org.jackhuang.hmcl.ui.*;
 import org.jackhuang.hmcl.ui.construct.*;
+import org.jackhuang.hmcl.vncl.VnclEmptyState;
 import org.jackhuang.hmcl.util.ChunkBaseApp;
 import org.jackhuang.hmcl.util.i18n.I18n;
 import org.jackhuang.hmcl.util.io.FileUtils;
@@ -71,6 +72,10 @@ public final class WorldListPage extends ListPageBase<World> {
         });
 
         showAll.addListener(e -> updateWorldList());
+
+        JFXButton addWorld = new JFXButton(i18n("world.add"));
+        addWorld.setOnAction(e -> add());
+        setEmptyState(new VnclEmptyState(SVG.PUBLIC, i18n("world.empty"), i18n("world.add"), addWorld));
 
         listenerHolder.add(FXUtils.onWeakChangeAndOperate(instanceContext, current -> {
             if (current != null) {
@@ -126,8 +131,15 @@ public final class WorldListPage extends ListPageBase<World> {
             worlds = result;
             updateWorldList();
 
-            if (exception != null)
+            if (exception != null) {
                 LOG.warning("Failed to load world list page", exception);
+                setEmpty(false);
+                setFailedReason(i18n("world.load.fail"));
+            } else {
+                boolean empty = getItems().isEmpty();
+                setEmpty(empty);
+                setFailedReason(empty ? i18n("world.empty") : null);
+            }
 
             setLoading(false);
         }).start();

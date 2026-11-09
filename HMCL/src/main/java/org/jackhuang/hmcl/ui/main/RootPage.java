@@ -123,7 +123,7 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 Instances.modifyGameSettings(instance);
             }
         });
-        JFXButton railLaunch = createRailButton(SVG.ARROW_FORWARD, i18n("instance.launch"), getMainPage()::launchSelected);
+        JFXButton railLaunch = createRailButton(SVG.PLAY_ARROW, i18n("instance.launch"), getMainPage()::launchSelected);
         JFXButton railDownload = createRailButton(SVG.DOWNLOAD, i18n("download"),
                 () -> Controllers.navigate(Controllers.getDownloadPage()));
         Region railSpacer = new Region();
@@ -241,6 +241,7 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         button.getStyleClass().add("vncl-rail-button");
         button.setGraphic(icon.createIcon());
         FXUtils.installFastTooltip(button, tooltip);
+        button.setAccessibleText(tooltip);
         button.setOnAction(event -> action.run());
         return button;
     }

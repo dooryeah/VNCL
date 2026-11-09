@@ -485,6 +485,7 @@ public final class ModListPage extends ListPageBase<ModListPage.ModInfoObject> i
                 SpinnerPane center = new SpinnerPane();
                 ComponentList.setVgrow(center, Priority.ALWAYS);
                 center.loadingProperty().bind(skinnable.loadingProperty());
+                center.skeletonProperty().bind(skinnable.skeletonProperty());
 
                 listView.setCellFactory(x -> new ModListPage.ModInfoListCell(listView, skinnable));
                 listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);

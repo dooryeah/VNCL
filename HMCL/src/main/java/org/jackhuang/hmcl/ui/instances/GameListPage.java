@@ -37,6 +37,7 @@ import org.jackhuang.hmcl.ui.decorator.DecoratorPage;
 import org.jackhuang.hmcl.ui.directory.GameDirectoryListItem;
 import org.jackhuang.hmcl.ui.directory.GameDirectoryPage;
 import org.jackhuang.hmcl.ui.download.ModpackInstallWizardProvider;
+import org.jackhuang.hmcl.vncl.VnclEmptyState;
 import org.jackhuang.hmcl.util.FXThread;
 import org.jackhuang.hmcl.util.StringUtils;
 import org.jackhuang.hmcl.util.io.FileUtils;
@@ -128,6 +129,10 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
             GameDirectoryManager.registerVersionsListener(this::loadVersions);
 
             setOnFailedAction(e -> Instances.addNewGame());
+
+            JFXButton openDownload = new JFXButton(i18n("instance.empty.add"));
+            openDownload.setOnAction(e -> Controllers.navigate(Controllers.getDownloadPage()));
+            setEmptyState(new VnclEmptyState(SVG.ARCHIVE, i18n("instance.empty"), i18n("instance.empty.hint"), openDownload));
         }
 
         @FXThread
@@ -143,7 +148,11 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
             sourceList.setAll(instanceItems);
 
             if (instanceItems.isEmpty()) {
+                setEmpty(true);
                 setFailedReason(i18n("instance.empty.hint"));
+            } else {
+                setEmpty(false);
+                setFailedReason(null);
             }
 
             setLoading(false);
@@ -246,6 +255,9 @@ public class GameListPage extends DecoratorAnimatedPage implements DecoratorPage
                     ComponentList.setVgrow(center, Priority.ALWAYS);
                     center.loadingProperty().bind(skinnable.loadingProperty());
                     center.failedReasonProperty().bind(skinnable.failedReasonProperty());
+                    center.skeletonProperty().bind(skinnable.skeletonProperty());
+                    center.emptyStateProperty().bind(skinnable.emptyStateProperty());
+                    center.emptyProperty().bind(skinnable.emptyProperty());
 
                     listView.setCellFactory(GameListCell::new);
                     listView.setItems(skinnable.getItems());
