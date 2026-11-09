@@ -18,6 +18,8 @@ import javafx.scene.paint.Color;
 import org.jackhuang.hmcl.ui.FXUtils;
 import org.jackhuang.hmcl.ui.SVG;
 import org.jackhuang.hmcl.util.javafx.MappedObservableList;
+import org.jackhuang.hmcl.vncl.VnclGlassCardOverlay;
+import org.jackhuang.hmcl.vncl.VnclUiConfig;
 import org.jetbrains.annotations.Nullable;
 
 public class ComponentList extends Control implements NoPaddingComponent {
@@ -83,7 +85,17 @@ public class ComponentList extends Control implements NoPaddingComponent {
             VBox vbox = new VBox();
             vbox.setFillWidth(true);
             Bindings.bindContent(vbox.getChildren(), list);
-            node = vbox;
+
+            if (VnclUiConfig.glassEnabledProperty().get()) {
+                // VNCL: every card gets its own rim light and pointer-following specular overlay.
+                vbox.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                StackPane container = new StackPane(vbox, new VnclGlassCardOverlay());
+                StackPane.setAlignment(vbox, Pos.TOP_LEFT);
+                container.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                node = container;
+            } else {
+                node = vbox;
+            }
         }
 
         private Node prevFirstItem;

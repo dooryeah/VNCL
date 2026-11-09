@@ -146,6 +146,7 @@ public final class StyleSheets {
         addColor(builder, scheme, ColorRole.PRIMARY, 0.5);
         addColor(builder, scheme, ColorRole.PRIMARY, 0.8);
         addColor(builder, scheme, ColorRole.SECONDARY_CONTAINER, 0.5);
+        addColor(builder, scheme, ColorRole.SURFACE, 0.1);
         addColor(builder, scheme, ColorRole.SURFACE, 0.15);
         addColor(builder, scheme, ColorRole.SURFACE, 0.3);
         addColor(builder, scheme, ColorRole.SURFACE, 0.5);

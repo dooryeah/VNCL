@@ -2291,7 +2291,7 @@
 }
 
 .vncl-glass-mode .options-list .options-list-item {
-    -fx-background-color: -monet-surface-transparent-15;
+    -fx-background-color: -monet-surface-transparent-10;
 }
 
 .vncl-glass-mode .options-list .options-list-item:first {
@@ -2307,7 +2307,7 @@
 }
 
 .vncl-glass-mode .jfx-dialog-layout {
-    -fx-background-color: -monet-surface-transparent-15;
+    -fx-background-color: -monet-surface-transparent-10;
     -fx-border-color: rgba(255, 255, 255, 0.5);
     -fx-border-width: 1;
     -fx-background-radius: 14;
@@ -2316,7 +2316,7 @@
 }
 
 .vncl-glass-mode .vncl-glass-flat.gray-background {
-    -fx-background-color: -monet-surface-transparent-15;
+    -fx-background-color: -monet-surface-transparent-10;
     -fx-border-color: transparent rgba(255, 255, 255, 0.28) transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
