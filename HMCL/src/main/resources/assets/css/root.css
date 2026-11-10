@@ -2331,23 +2331,12 @@
     -fx-fill: white;
 }
 
-/* Outlined and raised buttons share the same hover language */
-.jfx-button-border {
-    -fx-background-radius: 8px;
-    -fx-border-radius: 8px;
-    -fx-border-width: 1px;
-    -fx-border-color: -monet-outline-variant;
+/* Restore HMCL's compact radius for search and filter panels. */
+.card.vncl-search-pane {
+    -fx-background-radius: 4;
 }
 
-.jfx-button-border:hover {
-    -fx-background-color: -vncl-hover;
-    -fx-border-color: -monet-primary;
-}
-
-.jfx-button-border:pressed {
-    -fx-background-color: -vncl-hover-strong;
-}
-
+/* Raised button hover language */
 .jfx-button-raised:hover {
     -fx-background-color: derive(-monet-primary, -6%);
 }

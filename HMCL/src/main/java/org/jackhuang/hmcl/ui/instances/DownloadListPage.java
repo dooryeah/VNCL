@@ -253,7 +253,7 @@ public class DownloadListPage extends Control implements DecoratorPage {
 
             GridPane searchPane = new GridPane();
             pane.setTop(searchPane);
-            searchPane.getStyleClass().addAll("card");
+            searchPane.getStyleClass().addAll("card", "vncl-search-pane");
             BorderPane.setMargin(searchPane, new Insets(10, 10, 0, 10));
 
             ColumnConstraints nameColumn = new ColumnConstraints();

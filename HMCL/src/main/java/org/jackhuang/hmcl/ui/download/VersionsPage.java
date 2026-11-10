@@ -302,7 +302,7 @@ public final class VersionsPage extends Control implements WizardPage, Refreshab
 
             GridPane searchPane = new GridPane();
             root.setTop(searchPane);
-            searchPane.getStyleClass().addAll("card");
+            searchPane.getStyleClass().addAll("card", "vncl-search-pane");
             BorderPane.setMargin(searchPane, new Insets(10, 10, 0, 10));
 
             ColumnConstraints nameColumn = new ColumnConstraints();
