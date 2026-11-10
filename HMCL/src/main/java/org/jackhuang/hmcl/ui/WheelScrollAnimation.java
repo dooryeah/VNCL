@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNullByDefault;
 @NotNullByDefault
 final class WheelScrollAnimation extends AnimationTimer {
     /// Settling time after the last accepted wheel input, in nanoseconds.
-    private static final long WHEEL_DURATION = 150_000_000L;
+    private static final long WHEEL_DURATION = 200_000_000L;
 
     /// Supplies pixel bounds and movement without exposing nodes, gestures, or skins.
     @NotNullByDefault

@@ -395,6 +395,7 @@ public class GameCrashWindow extends Stage {
                 reasonPane.setFitToWidth(true);
                 reasonPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 reasonPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                FXUtils.smoothScrolling(reasonPane);
 
                 feedbackTextFlow.getStyleClass().add("crash-reason-text-flow");
 

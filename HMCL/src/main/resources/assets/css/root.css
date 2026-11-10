@@ -187,6 +187,11 @@
     -jfx-selected-background-fill: -monet-secondary-container;
 }
 
+.advanced-list-item-underline {
+    -fx-background-color: -monet-primary;
+    -fx-background-radius: 1px;
+}
+
 .advanced-list-item:selected > .rippler-container > .container > .title {
     -fx-text-fill: -monet-on-secondary-container;
     -fx-font-weight: bold;

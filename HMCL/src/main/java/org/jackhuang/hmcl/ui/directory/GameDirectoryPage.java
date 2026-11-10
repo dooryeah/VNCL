@@ -81,6 +81,7 @@ public final class GameDirectoryPage extends BorderPane implements DecoratorPage
         this.setCenter(scroll);
         scroll.setFitToHeight(true);
         scroll.setFitToWidth(true);
+        FXUtils.smoothScrolling(scroll);
         {
             VBox rootPane = new VBox();
             rootPane.setStyle("-fx-padding: 20;");

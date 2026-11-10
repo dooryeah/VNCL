@@ -4,13 +4,16 @@ package org.jackhuang.hmcl.ui.construct;
 
 import com.jfoenix.utils.JFXNodeUtils;
 import javafx.animation.FadeTransition;
+import javafx.animation.ScaleTransition;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.SkinBase;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Paint;
 import org.jackhuang.hmcl.ui.animation.AnimationUtils;
 import org.jackhuang.hmcl.ui.animation.Motion;
@@ -33,6 +36,15 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
     /// The reusable selection fade, allocated on the first animated state change.
     private @Nullable FadeTransition selectionTransition;
 
+    /// The short primary-colored underline that reinforces the selected row.
+    private final Region selectionUnderline = new Region();
+
+    /// The underline fade, allocated on the first animated state change.
+    private @Nullable FadeTransition underlineFade;
+
+    /// The underline scale animation, allocated on the first animated state change.
+    private @Nullable ScaleTransition underlineScale;
+
     /// Creates the content bindings and installs preparation only when configured by the item.
     public AdvancedListItemSkin(AdvancedListItem skinnable) {
         super(skinnable);
@@ -54,6 +66,20 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
 
         selectionBackground.setMouseTransparent(true);
         getChildren().setAll(selectionBackground, container);
+
+        selectionUnderline.getStyleClass().add("advanced-list-item-underline");
+        selectionUnderline.setMouseTransparent(true);
+        selectionUnderline.setMinHeight(2);
+        selectionUnderline.setPrefHeight(2);
+        selectionUnderline.setMaxHeight(2);
+        selectionUnderline.setMinWidth(32);
+        selectionUnderline.setPrefWidth(32);
+        selectionUnderline.setMaxWidth(32);
+        selectionUnderline.setOpacity(0);
+        selectionUnderline.setScaleX(0.7);
+        StackPane.setAlignment(selectionUnderline, Pos.BOTTOM_CENTER);
+        container.getChildren().add(selectionUnderline);
+
         updateSelectionFill();
         registerChangeListener(skinnable.selectedBackgroundFillProperty(), observable -> updateSelectionFill());
         updateSelection(false);
@@ -82,6 +108,7 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
             selectionTransition.stop();
         if (!animate || !AnimationUtils.isAnimationEnabled() || !JFXNodeUtils.isTreeShowing(item) || current == target) {
             selectionBackground.setOpacity(target);
+            updateUnderline(active, false);
             return;
         }
 
@@ -95,6 +122,44 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
         selectionTransition.setToValue(target);
         selectionTransition.setOnFinished(event -> selectionBackground.setOpacity(target));
         selectionTransition.playFromStart();
+
+        updateUnderline(active, true);
+    }
+
+    /// Fades and grows the selection underline, or applies the final state when motion is disabled.
+    private void updateUnderline(boolean active, boolean animate) {
+        double targetOpacity = active ? 1 : 0;
+        double targetScale = active ? 1 : 0.7;
+        double currentOpacity = selectionUnderline.getOpacity();
+        if (underlineFade != null)
+            underlineFade.stop();
+        if (underlineScale != null)
+            underlineScale.stop();
+        if (!animate || !AnimationUtils.isAnimationEnabled() || !JFXNodeUtils.isTreeShowing(getSkinnable())) {
+            selectionUnderline.setOpacity(targetOpacity);
+            selectionUnderline.setScaleX(targetScale);
+            return;
+        }
+
+        if (underlineFade == null) {
+            underlineFade = new FadeTransition(Motion.SHORT3, selectionUnderline);
+            underlineFade.setInterpolator(Motion.STANDARD);
+        }
+        if (underlineScale == null) {
+            underlineScale = new ScaleTransition(Motion.SHORT3, selectionUnderline);
+            underlineScale.setInterpolator(Motion.EMPHASIZED_DECELERATE);
+        }
+
+        selectionUnderline.setOpacity(currentOpacity);
+        underlineFade.setFromValue(currentOpacity);
+        underlineFade.setToValue(targetOpacity);
+        underlineFade.setOnFinished(event -> selectionUnderline.setOpacity(targetOpacity));
+        underlineFade.playFromStart();
+
+        underlineScale.setFromX(selectionUnderline.getScaleX());
+        underlineScale.setToX(targetScale);
+        underlineScale.setOnFinished(event -> selectionUnderline.setScaleX(targetScale));
+        underlineScale.playFromStart();
     }
 
     /// Updates main-action feedback and preparation without allocating the control's property.
@@ -121,6 +186,10 @@ public class AdvancedListItemSkin extends SkinBase<AdvancedListItem> {
     public void dispose() {
         if (selectionTransition != null)
             selectionTransition.stop();
+        if (underlineFade != null)
+            underlineFade.stop();
+        if (underlineScale != null)
+            underlineScale.stop();
         container.setOnAction(null);
         container.setPrepareAction(null);
         TwoLineListItem item = (TwoLineListItem) container.getContainer();

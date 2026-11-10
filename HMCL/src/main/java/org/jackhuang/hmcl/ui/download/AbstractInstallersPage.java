@@ -157,6 +157,7 @@ public abstract class AbstractInstallersPage extends Control implements WizardPa
                 ScrollPane scrollPane = new ScrollPane(libraryPane);
                 scrollPane.setFitToWidth(true);
                 scrollPane.setFitToHeight(true);
+                FXUtils.smoothScrolling(scrollPane);
                 BorderPane.setMargin(scrollPane, new Insets(16, 0, 16, 0));
                 root.setCenter(scrollPane);
 
