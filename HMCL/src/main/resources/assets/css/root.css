@@ -2475,3 +2475,47 @@
     -fx-font-size: 16px;
     -fx-font-weight: BOLD;
 }
+/* VNCL relay page */
+.vncl-relay-page {
+    -fx-background-color: transparent;
+}
+
+.vncl-relay-intro {
+    -fx-font-size: 13px;
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+.vncl-relay-card {
+    -fx-background-color: -monet-surface;
+    -fx-background-radius: 12px;
+    -fx-padding: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 10, 0.1, 0, 2);
+}
+
+.vncl-relay-card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: BOLD;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.vncl-relay-card-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+.vncl-relay-status {
+    -fx-font-size: 12px;
+    -fx-text-fill: -monet-on-surface-variant;
+}
+
+.vncl-relay-code {
+    -fx-font-size: 22px;
+    -fx-font-weight: BOLD;
+    -fx-text-fill: -monet-primary;
+}
+
+.vncl-relay-address {
+    -fx-font-size: 14px;
+    -fx-font-family: monospace;
+    -fx-text-fill: -monet-on-surface;
+}

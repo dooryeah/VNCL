@@ -1,11 +1,12 @@
 # VNCL host-side frpc configuration template.
-# The room service replaces ROOM_CODE / ROOM_SECRET / LOCAL_MC_PORT at runtime.
+# The room service fills in ROOM_CODE / HOST_TOKEN / ROOM_SECRET / LOCAL_MC_PORT.
+# No global frps token is used; frps asks the room API to validate this login.
 serverAddr = "YOUR_ECS_IP"
 serverPort = 7000
-
-auth.method = "token"
-auth.token = "CHANGE_ME"
 transport.tls.enable = true
+
+user = "vncl-ROOM_CODE-host"
+metadatas.token = "HOST_TOKEN"
 
 [[proxies]]
 name = "vncl-ROOM_CODE"
@@ -13,3 +14,4 @@ type = "stcp"
 secretKey = "ROOM_SECRET"
 localIP = "127.0.0.1"
 localPort = LOCAL_MC_PORT
+allowUsers = ["*"]

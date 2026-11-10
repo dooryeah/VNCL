@@ -112,6 +112,13 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
 
         // VNCL: Terracotta (HMCL's multiplayer service) is intentionally not exposed in this fork.
 
+        // VNCL: self-hosted relay rooms (STCP + visitor).
+        AdvancedListItem relayItem = new AdvancedListItem();
+        relayItem.setLeftIcon(SVG.PUBLIC);
+        relayItem.setTitle(i18n("vncl.relay.title"));
+        relayItem.setSubtitle(i18n("vncl.relay.subtitle"));
+        relayItem.setOnAction(e -> Controllers.navigate(new VnclRelayPage()));
+
         // VNCL: compact rail shown while the sidebar is collapsed.
         JFXButton railAccount = createRailButton(SVG.PERSON, i18n("account"),
                 () -> Controllers.navigate(Controllers.getAccountListPage()));
@@ -126,9 +133,11 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         JFXButton railLaunch = createRailButton(SVG.PLAY_ARROW, i18n("instance.launch"), getMainPage()::launchSelected);
         JFXButton railDownload = createRailButton(SVG.DOWNLOAD, i18n("download"),
                 () -> Controllers.navigate(Controllers.getDownloadPage()));
+        JFXButton railRelay = createRailButton(SVG.PUBLIC, i18n("vncl.relay.title"),
+                () -> Controllers.navigate(new VnclRelayPage()));
         Region railSpacer = new Region();
         VBox.setVgrow(railSpacer, Priority.ALWAYS);
-        VBox rail = new VBox(6, railAccount, railInstance, railLaunch, railDownload, railSpacer);
+        VBox rail = new VBox(6, railAccount, railInstance, railLaunch, railDownload, railRelay, railSpacer);
         rail.setAlignment(Pos.TOP_CENTER);
         rail.setPadding(new Insets(10, 6, 0, 6));
         rail.getStyleClass().add("vncl-compact-sidebar");
@@ -182,7 +191,8 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 .startCategory(i18n("instance").toUpperCase(Locale.ROOT))
                 .add(gameInstanceItem)
                 .add(launchBox)
-                .add(downloadItem);
+                .add(downloadItem)
+                .add(relayItem);
 
         // the root page, with the sidebar in left, navigator in center.
         setContent(getMainPage());

@@ -1,15 +1,17 @@
 # VNCL visitor-side frpc configuration template.
-# The room service replaces ROOM_CODE / ROOM_SECRET / LOCAL_VISITOR_PORT at runtime.
+# The room service fills in ROOM_CODE / GUEST_TOKEN / ROOM_SECRET / LOCAL_VISITOR_PORT.
+# serverUser points at the host's login user so STCP can resolve the host proxy.
 serverAddr = "YOUR_ECS_IP"
 serverPort = 7000
-
-auth.method = "token"
-auth.token = "CHANGE_ME"
 transport.tls.enable = true
+
+user = "vncl-ROOM_CODE-guest"
+metadatas.token = "GUEST_TOKEN"
 
 [[visitors]]
 name = "vncl-ROOM_CODE-visitor"
 type = "stcp"
+serverUser = "vncl-ROOM_CODE-host"
 serverName = "vncl-ROOM_CODE"
 secretKey = "ROOM_SECRET"
 bindAddr = "127.0.0.1"

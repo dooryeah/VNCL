@@ -1,0 +1,20 @@
+# VNCL frps configuration with per-room HTTP plugin authentication.
+# The room API validates frpc logins and only the room host may create the matching STCP proxy.
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+transport.tls.force = true
+
+webServer.addr = "127.0.0.1"
+webServer.port = 7500
+webServer.user = "vncl"
+webServer.password = "CHANGE_ME"
+
+log.to = "console"
+log.level = "info"
+
+[[httpPlugins]]
+name = "vncl-room-auth"
+addr = "127.0.0.1:8080"
+path = "/plugin"
+ops = ["Login", "NewProxy", "NewUserConn", "Ping", "NewWorkConn", "CloseProxy"]

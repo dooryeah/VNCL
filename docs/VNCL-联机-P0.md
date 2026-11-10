@@ -101,3 +101,26 @@ Java 版 Minecraft 远程联机：房主在单机世界「对局域网开放」�
 - 已验证：经 Cloudflare 的 health、create、join、heartbeat、delete 全流程通过
 - 注意：room-api 使用内存存储，服务重启会清空房间；房间 TTL 12h，服务端每 IP 创建/加入限流
 - 待决：frps token 如何下发给 VNCL（内嵌构建 vs 房间 API 返回）；公开分发前建议改为 frps HTTP plugin/每房间 token
+
+## P1 客户端（2026-11-10）
+
+- 侧栏新增「远程联机」独立页（`VnclRelayPage`）
+- 房主：
+  - 输入/自动填入局域网端口
+  - 创建房间 → room API → 生成 host 配置并启动随包 frpc
+  - 显示房间码、可复制；关闭房间时删除房间并停止 frpc
+- 访客：
+  - 输入房间码 → room API → 生成 visitor 配置（`serverUser` 指向房主用户）并启动 frpc
+  - 本地监听优先 25566，被占用时使用临时端口
+  - 显示 `127.0.0.1:<port>`，可复制
+- 局域网端口由游戏日志 `Started serving on <port>` 自动识别（`LauncherHelper`），识别失败可手动填
+- frpc Windows 二进制随 jar 打包（`assets/vncl/frpc.exe`，Apache-2.0，已附 `frp-LICENSE.txt`）
+- frps 改为 HTTP plugin 鉴权：
+  - 房间创建返回 host/guest 独立 token
+  - frps `[[httpPlugins]]` 调用 room API `/plugin`
+  - 访客只能加入，不能创建 proxy；Nginx 显式 404 `/vncl/plugin`
+- 已知限制：
+  - 仍需手动「对局域网开放」，未实现自动开 LAN
+  - 加入后只显示本地地址，尚未做 MC quick play 自动进服
+  - 尚未用真实 Minecraft 世界做最终联机验收
+  - room API 创建接口无账号鉴权，按 IP 限流，适合朋友小范围使用

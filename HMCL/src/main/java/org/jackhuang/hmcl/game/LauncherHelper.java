@@ -36,6 +36,7 @@ import org.jackhuang.hmcl.util.platform.windows.WinReg;
 import org.jackhuang.hmcl.util.versioning.GameVersionNumber;
 import org.jackhuang.hmcl.util.versioning.VersionNumber;
 import org.jackhuang.hmcl.vncl.VnclPlaytimeManager;
+import org.jackhuang.hmcl.vncl.VnclRelayManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
@@ -49,6 +50,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static javafx.application.Platform.runLater;
@@ -852,6 +855,8 @@ public final class LauncherHelper {
         private final LaunchOptions launchOptions;
         private ManagedProcess process;
         private volatile boolean lwjgl;
+        /// Pattern for the integrated server LAN port announced by Minecraft.
+        private static final Pattern LAN_PORT_PATTERN = Pattern.compile("Started serving on (\\d+)");
         /// VNCL playtime session id, started when the game window appears and ended on process exit.
         private volatile long playtimeSessionId = -1;
         private LogWindow logWindow;
@@ -1002,6 +1007,11 @@ public final class LauncherHelper {
                 }
             }
 
+            Matcher lanPortMatcher = LAN_PORT_PATTERN.matcher(log);
+            if (lanPortMatcher.find()) {
+                VnclRelayManager.setDetectedLanPort(Integer.parseInt(lanPortMatcher.group(1)));
+            }
+
             if (!lwjgl) {
                 String lowerCaseLog = log.toLowerCase(Locale.ROOT);
                 if (!detectWindow || lowerCaseLog.contains("lwjgl version") || lowerCaseLog.contains("lwjgl openal")) {
@@ -1028,6 +1038,7 @@ public final class LauncherHelper {
                 VnclPlaytimeManager.endSession(playtimeSessionId);
                 playtimeSessionId = -1;
             }
+            VnclRelayManager.setDetectedLanPort(-1);
 
             if (showLogs) {
                 logBuffer.add(new Log(String.format("[%s] [HMCL ProcessListener] Minecraft exit with code %d(0x%x), type is %s.", TIME_FORMATTER.format(Instant.now()), exitCode, exitCode, exitType), Log4jLevel.INFO));

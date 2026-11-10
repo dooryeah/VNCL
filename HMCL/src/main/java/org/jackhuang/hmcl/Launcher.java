@@ -38,6 +38,7 @@ import org.jackhuang.hmcl.util.platform.windows.Shell32;
 import org.jackhuang.hmcl.util.platform.windows.User32;
 import org.jackhuang.hmcl.util.platform.windows.WinReg;
 import org.jackhuang.hmcl.vncl.VnclPlaytimeManager;
+import org.jackhuang.hmcl.vncl.VnclRelayManager;
 import org.jackhuang.hmcl.vncl.VnclStartupAnimation;
 import org.jetbrains.annotations.Nullable;
 
@@ -359,6 +360,7 @@ public final class Launcher extends Application {
             if (Controllers.getStage() == null)
                 return;
             VnclPlaytimeManager.shutdown();
+            VnclRelayManager.shutdown();
             Controllers.getStage().close();
             Schedulers.shutdown();
             Controllers.shutdown();
@@ -373,6 +375,7 @@ public final class Launcher extends Application {
             if (Controllers.getStage() == null)
                 return;
             VnclPlaytimeManager.shutdown();
+            VnclRelayManager.shutdown();
             Controllers.getStage().close();
             Schedulers.shutdown();
             Controllers.shutdown();
