@@ -1,0 +1,21 @@
+# Example systemd unit for the VNCL frp server.
+# Install as /etc/systemd/system/vncl-frps.service and adjust paths if needed.
+[Unit]
+Description=VNCL frp server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=admin
+Group=admin
+WorkingDirectory=/opt/vncl-relay
+ExecStart=/opt/vncl-relay/frps -c /opt/vncl-relay/frps.toml
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=1048576
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

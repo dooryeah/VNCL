@@ -1,0 +1,19 @@
+# VNCL frps server configuration template.
+# Replace CHANGE_ME with a long random token, then keep the file private.
+bindAddr = "0.0.0.0"
+bindPort = 7000
+
+auth.method = "token"
+auth.token = "CHANGE_ME"
+
+# Only accept TLS-encrypted frpc connections.
+transport.tls.force = true
+
+# Keep the dashboard private; do not expose port 7500 publicly.
+webServer.addr = "127.0.0.1"
+webServer.port = 7500
+webServer.user = "vncl"
+webServer.password = "CHANGE_ME_TOO"
+
+log.to = "console"
+log.level = "info"
