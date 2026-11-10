@@ -14,15 +14,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.jackhuang.hmcl.ui.FXUtils;
 import org.jackhuang.hmcl.ui.decorator.DecoratorPage;
 import org.jackhuang.hmcl.vncl.VnclRelayManager;
 import org.jetbrains.annotations.NotNullByDefault;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -148,7 +145,6 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
 
         VBox card = createCard(i18n("vncl.relay.host"), i18n("vncl.relay.host.hint"),
                 portRow, codeRow, hostStatus);
-        HBox.setHgrow(codeRow, Priority.NEVER);
         return card;
     }
 
@@ -205,7 +201,7 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
             return;
         }
 
-        setBusy(hostStart, true);
+        hostStart.setDisable(true);
         hostStop.setDisable(true);
         hostStatus.setText(i18n("vncl.relay.status.creating"));
 
@@ -218,7 +214,7 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
                 throw new CompletionException(exception);
             }
         }, EXECUTOR).whenComplete((room, error) -> Platform.runLater(() -> {
-            setBusy(hostStart, false);
+            hostStart.setDisable(false);
             if (error != null) {
                 hostStatus.setText(errorMessage(error));
                 return;
@@ -249,7 +245,7 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
             return;
         }
 
-        setBusy(joinStart, true);
+        joinStart.setDisable(true);
         joinStop.setDisable(true);
         joinStatus.setText(i18n("vncl.relay.status.joining"));
 
@@ -258,12 +254,12 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
                 int localPort = findFreePort();
                 VnclRelayManager.GuestRoom room = VnclRelayManager.joinRoom(code);
                 VnclRelayManager.startGuest(room, localPort);
-                return new Joined(room, localPort);
+                return new Joined(localPort);
             } catch (Exception exception) {
                 throw new CompletionException(exception);
             }
         }, EXECUTOR).whenComplete((joined, error) -> Platform.runLater(() -> {
-            setBusy(joinStart, false);
+            joinStart.setDisable(false);
             if (error != null) {
                 joinStatus.setText(errorMessage(error));
                 return;
@@ -288,7 +284,7 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
 
     /// Formats an async error for the status label.
     private static String errorMessage(Throwable error) {
-        @Nullable Throwable cause = error.getCause() != null ? error.getCause() : error;
+        Throwable cause = error.getCause() != null ? error.getCause() : error;
         String message = cause.getMessage();
         return message == null || message.isBlank() ? i18n("vncl.relay.error") : message;
     }
@@ -296,19 +292,12 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
     /// Chooses a local port for the visitor, preferring 25566.
     private static int findFreePort() throws IOException {
         try (ServerSocket socket = new ServerSocket(25566, 1, java.net.InetAddress.getLoopbackAddress())) {
-            socket.setReuseAddress(true);
             return 25566;
         } catch (IOException ignored) {
             try (ServerSocket socket = new ServerSocket(0)) {
-                socket.setReuseAddress(true);
                 return socket.getLocalPort();
             }
         }
-    }
-
-    /// Enables or disables a busy button.
-    private static void setBusy(JFXButton button, boolean busy) {
-        button.setDisable(busy);
     }
 
     @Override
@@ -317,6 +306,6 @@ public final class VnclRelayPage extends StackPane implements DecoratorPage {
     }
 
     /// Result of a successful guest join.
-    private record Joined(VnclRelayManager.GuestRoom room, int localPort) {
+    private record Joined(int localPort) {
     }
 }

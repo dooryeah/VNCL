@@ -344,6 +344,7 @@ public final class VnclRelayManager {
             } catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
                 Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
             }
+            rememberVerifiedFrpc(target);
             return target;
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
@@ -356,12 +357,15 @@ public final class VnclRelayManager {
     /// Returns whether the cached frpc has the expected size and checksum.
     private static synchronized boolean isValidFrpc(Path file) {
         try {
+            if (!Files.isRegularFile(file)) {
+                return false;
+            }
             long size = Files.size(file);
             long modified = Files.getLastModifiedTime(file).toMillis();
             if (file.equals(verifiedFrpcPath) && size == verifiedFrpcSize && modified == verifiedFrpcModified) {
                 return true;
             }
-            if (!Files.isRegularFile(file) || size != FRPC_SIZE || !FRPC_SHA256.equalsIgnoreCase(sha256(file))) {
+            if (size != FRPC_SIZE || !FRPC_SHA256.equalsIgnoreCase(sha256(file))) {
                 return false;
             }
             verifiedFrpcPath = file;
@@ -371,6 +375,13 @@ public final class VnclRelayManager {
         } catch (IOException exception) {
             return false;
         }
+    }
+
+    /// Records a freshly downloaded frpc as verified.
+    private static synchronized void rememberVerifiedFrpc(Path file) throws IOException {
+        verifiedFrpcPath = file;
+        verifiedFrpcSize = Files.size(file);
+        verifiedFrpcModified = Files.getLastModifiedTime(file).toMillis();
     }
 
     /// Computes the SHA-256 hex digest of a file.
