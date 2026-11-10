@@ -53,6 +53,11 @@ public final class VnclRelayManager {
     /// SHA-256 of the downloaded frpc build, used to reject corrupted or tampered downloads.
     private static final String FRPC_SHA256 = "332B1CFDFEC48C6745F94904026DEDC0BF3872D887E161B9E555C610554AAB49";
 
+    /// Last frpc file whose checksum was verified, to avoid rehashing 16 MB for every start.
+    private static @Nullable Path verifiedFrpcPath;
+    private static long verifiedFrpcSize = -1;
+    private static long verifiedFrpcModified = -1;
+
     /// HTTP client for the room service.
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(15))
@@ -349,11 +354,20 @@ public final class VnclRelayManager {
     }
 
     /// Returns whether the cached frpc has the expected size and checksum.
-    private static boolean isValidFrpc(Path file) {
+    private static synchronized boolean isValidFrpc(Path file) {
         try {
-            return Files.isRegularFile(file)
-                    && Files.size(file) == FRPC_SIZE
-                    && FRPC_SHA256.equalsIgnoreCase(sha256(file));
+            long size = Files.size(file);
+            long modified = Files.getLastModifiedTime(file).toMillis();
+            if (file.equals(verifiedFrpcPath) && size == verifiedFrpcSize && modified == verifiedFrpcModified) {
+                return true;
+            }
+            if (!Files.isRegularFile(file) || size != FRPC_SIZE || !FRPC_SHA256.equalsIgnoreCase(sha256(file))) {
+                return false;
+            }
+            verifiedFrpcPath = file;
+            verifiedFrpcSize = size;
+            verifiedFrpcModified = modified;
+            return true;
         } catch (IOException exception) {
             return false;
         }
