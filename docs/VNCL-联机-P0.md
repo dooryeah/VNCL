@@ -87,3 +87,17 @@ Java 版 Minecraft 远程联机：房主在单机世界「对局域网开放」�
 - `deploy/relay/frpc-host.toml.example`
 - `deploy/relay/frpc-visitor.toml.example`
 - `deploy/relay/vncl-frps.service.example`
+
+## P1 后端进展（2026-11-10）
+
+- `relay.nekoinn.top` DNS 已生效（Cloudflare 代理）
+- Nginx 新增 `relay.nekoinn.top` server block，复用 `*.nekoinn.top` Origin 证书
+- Go room-api 已部署为 `vncl-room-api.service`（127.0.0.1:8080，内存存储，10 房间上限，12h TTL）
+- API 路径：`https://relay.nekoinn.top/vncl/api/rooms`
+  - `POST /vncl/api/rooms` 创建（返回 code/proxyName/secret/hostToken）
+  - `GET /vncl/api/rooms/{code}` 访客取配置
+  - `POST /vncl/api/rooms/{code}/heartbeat` 续期
+  - `DELETE /vncl/api/rooms/{code}` 删除（Bearer hostToken）
+- 已验证：经 Cloudflare 的 health、create、join、heartbeat、delete 全流程通过
+- 注意：room-api 使用内存存储，服务重启会清空房间；房间 TTL 12h，服务端每 IP 创建/加入限流
+- 待决：frps token 如何下发给 VNCL（内嵌构建 vs 房间 API 返回）；公开分发前建议改为 frps HTTP plugin/每房间 token

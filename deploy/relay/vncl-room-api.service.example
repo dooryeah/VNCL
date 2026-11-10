@@ -1,0 +1,22 @@
+# Example systemd unit for the VNCL room API.
+# Install as /etc/systemd/system/vncl-room-api.service.
+[Unit]
+Description=VNCL room API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=admin
+Group=admin
+WorkingDirectory=/opt/vncl-relay
+Environment=ADDR=127.0.0.1:8080
+Environment=MAX_ROOMS=10
+Environment=TTL_HOURS=12
+ExecStart=/opt/vncl-relay/room-api
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
