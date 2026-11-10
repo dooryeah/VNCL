@@ -124,3 +124,12 @@ Java 版 Minecraft 远程联机：房主在单机世界「对局域网开放」�
   - 加入后只显示本地地址，尚未做 MC quick play 自动进服
   - 尚未用真实 Minecraft 世界做最终联机验收
   - room API 创建接口无账号鉴权，按 IP 限流，适合朋友小范围使用
+
+### 真实 Minecraft 验收（2026-11-10）
+
+- 用户创建房间 `X8T9ZB`，房间 API 返回有效配置
+- 本机 visitor frpc 登录 ECS 成功，`visitor added`
+- 通过 `127.0.0.1:25566` 发送 Minecraft status 请求，成功返回：
+  - version: `26.3`
+  - players: `1 / 8`
+- 说明真实 Minecraft 局域网世界已能经 ECS + per-room token 中转访问；测试 visitor 已停止，房间保留给用户
