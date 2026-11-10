@@ -118,6 +118,8 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         relayItem.setTitle(i18n("vncl.relay.title"));
         relayItem.setSubtitle(i18n("vncl.relay.subtitle"));
         relayItem.setOnAction(e -> Controllers.navigate(new VnclRelayPage()));
+        relayItem.visibleProperty().bind(VnclUiConfig.relayEnabledProperty());
+        relayItem.managedProperty().bind(VnclUiConfig.relayEnabledProperty());
 
         // VNCL: compact rail shown while the sidebar is collapsed.
         JFXButton railAccount = createRailButton(SVG.PERSON, i18n("account"),
@@ -135,6 +137,8 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 () -> Controllers.navigate(Controllers.getDownloadPage()));
         JFXButton railRelay = createRailButton(SVG.PUBLIC, i18n("vncl.relay.title"),
                 () -> Controllers.navigate(new VnclRelayPage()));
+        railRelay.visibleProperty().bind(VnclUiConfig.relayEnabledProperty());
+        railRelay.managedProperty().bind(VnclUiConfig.relayEnabledProperty());
         Region railSpacer = new Region();
         VBox.setVgrow(railSpacer, Priority.ALWAYS);
         VBox rail = new VBox(6, railAccount, railInstance, railLaunch, railDownload, railRelay, railSpacer);

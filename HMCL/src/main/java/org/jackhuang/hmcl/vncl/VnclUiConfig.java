@@ -52,6 +52,7 @@ public final class VnclUiConfig {
     private static final DoubleProperty density = new SimpleDoubleProperty(DEFAULT_DENSITY);
     private static final DoubleProperty fontScale = new SimpleDoubleProperty(DEFAULT_FONT_SCALE);
     private static final BooleanProperty sidebarCollapsed = new SimpleBooleanProperty(false);
+    private static final BooleanProperty relayEnabled = new SimpleBooleanProperty(false);
     private static final BooleanProperty startupAnimationEnabled = new SimpleBooleanProperty(false);
     private static final StringProperty startupAnimationFile = new SimpleStringProperty("");
     private static final DoubleProperty startupAnimationVolume = new SimpleDoubleProperty(1.0);
@@ -62,9 +63,15 @@ public final class VnclUiConfig {
         density.addListener(observable -> save());
         fontScale.addListener(observable -> save());
         sidebarCollapsed.addListener(observable -> save());
+        relayEnabled.addListener(observable -> save());
         startupAnimationEnabled.addListener(observable -> save());
         startupAnimationFile.addListener(observable -> save());
         startupAnimationVolume.addListener(observable -> save());
+    }
+
+    /// Returns whether the optional remote relay feature is enabled.
+    public static BooleanProperty relayEnabledProperty() {
+        return relayEnabled;
     }
 
     /// Returns whether the startup animation is enabled.
@@ -145,6 +152,7 @@ public final class VnclUiConfig {
             density.set(clamp(data.density, MIN_DENSITY, MAX_DENSITY, DEFAULT_DENSITY));
             fontScale.set(clamp(data.fontScale, MIN_FONT_SCALE, MAX_FONT_SCALE, DEFAULT_FONT_SCALE));
             sidebarCollapsed.set(data.sidebarCollapsed);
+            relayEnabled.set(data.relayEnabled);
             startupAnimationEnabled.set(data.startupAnimationEnabled);
             startupAnimationFile.set(data.startupAnimationFile == null ? "" : data.startupAnimationFile);
             startupAnimationVolume.set(clamp(data.startupAnimationVolume, 0, 1, 1.0));
@@ -163,6 +171,7 @@ public final class VnclUiConfig {
                 data.density = density.get();
                 data.fontScale = fontScale.get();
                 data.sidebarCollapsed = sidebarCollapsed.get();
+                data.relayEnabled = relayEnabled.get();
                 data.startupAnimationEnabled = startupAnimationEnabled.get();
                 data.startupAnimationFile = startupAnimationFile.get();
                 data.startupAnimationVolume = startupAnimationVolume.get();
@@ -189,6 +198,7 @@ public final class VnclUiConfig {
         double density = DEFAULT_DENSITY;
         double fontScale = DEFAULT_FONT_SCALE;
         boolean sidebarCollapsed = false;
+        boolean relayEnabled = false;
         boolean startupAnimationEnabled = false;
         String startupAnimationFile = "";
         double startupAnimationVolume = 1.0;

@@ -133,3 +133,13 @@ Java 版 Minecraft 远程联机：房主在单机世界「对局域网开放」�
   - version: `26.3`
   - players: `1 / 8`
 - 说明真实 Minecraft 局域网世界已能经 ECS + per-room token 中转访问；测试 visitor 已停止，房间保留给用户
+
+## 可选远程联机（2026-11-11）
+
+- `vncl-ui.json` 新增 `relayEnabled`，默认 **关闭**
+- 设置 → 外观/通用中的「远程联机」开关控制侧栏入口与栏目
+- 关闭时不会下载或运行 frpc，也不显示联机入口
+- 首次开启并创建/加入房间时才从 `https://relay.nekoinn.top/vncl/download/frpc.exe` 下载 frpc
+  - 下载后校验固定 SHA-256：`332B1CFDFEC48C6745F94904026DEDC0BF3872D887E161B9E555C610554AAB49`
+  - 不再把 16 MB 的 frpc 打进启动器，exe 从 18.8 MB 降到约 12.6 MB
+- 参考 HMCL 陶瓦联机的可选组件模式：未启用时完全不影响普通启动器使用

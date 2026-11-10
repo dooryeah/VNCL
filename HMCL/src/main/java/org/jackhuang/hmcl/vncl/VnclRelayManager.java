@@ -17,19 +17,25 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.HexFormat;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.jackhuang.hmcl.util.logging.Logger.LOG;
 
-/// Manages the VNCL relay session: room creation/lookup and the bundled frpc host/visitor processes.
+/// Manages the VNCL relay session: room creation/lookup and the optional frpc host/visitor processes.
 ///
+/// The frpc component is downloaded on first use and verified against a pinned SHA-256 checksum.
 /// Room authentication is per room: the frps HTTP plugin validates the host and guest tokens issued
 /// by the room service. No global frps token is stored in the client.
 @NotNullByDefault
@@ -37,6 +43,15 @@ public final class VnclRelayManager {
 
     /// Room service base URL.
     private static final String API_BASE = "https://relay.nekoinn.top/vncl/api/rooms";
+
+    /// Download URL for the optional frpc component.
+    private static final String FRPC_DOWNLOAD_URL = "https://relay.nekoinn.top/vncl/download/frpc.exe";
+
+    /// Expected size of the downloaded frpc build.
+    private static final long FRPC_SIZE = 16_442_368L;
+
+    /// SHA-256 of the downloaded frpc build, used to reject corrupted or tampered downloads.
+    private static final String FRPC_SHA256 = "332B1CFDFEC48C6745F94904026DEDC0BF3872D887E161B9E555C610554AAB49";
 
     /// HTTP client for the room service.
     private static final HttpClient HTTP = HttpClient.newBuilder()
@@ -299,17 +314,66 @@ public final class VnclRelayManager {
     }
 
     private static Path frpcPath() throws IOException {
-        Path target = relayDirectory().resolve("frpc.exe");
-        if (Files.isRegularFile(target)) {
+        Path directory = relayDirectory();
+        Path target = directory.resolve("frpc.exe");
+        if (isValidFrpc(target)) {
             return target;
         }
-        try (InputStream input = VnclRelayManager.class.getResourceAsStream("/assets/vncl/frpc.exe")) {
-            if (input == null) {
-                throw new IOException("Bundled frpc.exe is missing");
+
+        Path temporary = Files.createTempFile(directory, "frpc-", ".exe");
+        try {
+            HttpResponse<Path> response = HTTP.send(
+                    HttpRequest.newBuilder(URI.create(FRPC_DOWNLOAD_URL))
+                            .timeout(Duration.ofMinutes(5))
+                            .GET()
+                            .build(),
+                    BodyHandlers.ofFile(temporary));
+            if (response.statusCode() / 100 != 2) {
+                throw new IOException("frpc download returned " + response.statusCode());
             }
-            Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
+            if (Files.size(temporary) != FRPC_SIZE || !FRPC_SHA256.equalsIgnoreCase(sha256(temporary))) {
+                throw new IOException("frpc download failed integrity check");
+            }
+            try {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return target;
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IOException("frpc download interrupted", exception);
+        } finally {
+            Files.deleteIfExists(temporary);
         }
-        return target;
+    }
+
+    /// Returns whether the cached frpc has the expected size and checksum.
+    private static boolean isValidFrpc(Path file) {
+        try {
+            return Files.isRegularFile(file)
+                    && Files.size(file) == FRPC_SIZE
+                    && FRPC_SHA256.equalsIgnoreCase(sha256(file));
+        } catch (IOException exception) {
+            return false;
+        }
+    }
+
+    /// Computes the SHA-256 hex digest of a file.
+    private static String sha256(Path file) throws IOException {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (InputStream input = Files.newInputStream(file)) {
+                byte[] buffer = new byte[64 * 1024];
+                int read;
+                while ((read = input.read(buffer)) >= 0) {
+                    digest.update(buffer, 0, read);
+                }
+            }
+            return HexFormat.of().formatHex(digest.digest()).toUpperCase(Locale.ROOT);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new AssertionError("SHA-256 is not available", exception);
+        }
     }
 
     private static void consumeOutput(Process process, String threadName) {

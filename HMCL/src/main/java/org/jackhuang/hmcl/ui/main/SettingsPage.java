@@ -205,6 +205,23 @@ public final class SettingsPage extends ScrollPane {
             addSection(rootPane, i18n("vncl.startup.title"), startupList,
                     "startup animation 启动动画 视频 开场");
 
+            // VNCL optional remote relay
+            ComponentList relayList = new ComponentList();
+            {
+                LineSwitch relayEnabled = new LineSwitch();
+                relayEnabled.setTitle(i18n("vncl.relay.enabled"));
+                relayEnabled.setSubtitle(i18n("vncl.relay.enabled.subtitle"));
+                relayEnabled.selectedProperty().bindBidirectional(VnclUiConfig.relayEnabledProperty());
+                relayList.getContent().add(relayEnabled);
+
+                Label relayHint = new Label(i18n("vncl.relay.enabled.hint"));
+                relayHint.getStyleClass().add("subtitle-label");
+                relayHint.setWrapText(true);
+                relayList.getContent().add(relayHint);
+            }
+            addSection(rootPane, i18n("vncl.relay.settings.title"), relayList,
+                    "relay multiplayer 远程联机 联机 房间 frp");
+
             ComponentList updatePaneList = new ComponentList();
             {
                 ObjectProperty<UpdateChannel> updateChannel;
