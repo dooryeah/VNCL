@@ -169,3 +169,9 @@ $env:MICROSOFT_AUTH_ID = "<客户端ID>"
   - 封面复制到实例目录 `cover.<ext>`，只显示在实例详情页顶部 banner（不改变实例列表布局）；
   - 主题色支持纯色/渐变，自定义两个颜色，不使用预设色板；保存在实例目录 `.hmcl/vncl-instance.json`，随实例复制/移动；
   - 侧栏实例选择器图标显示主题色渐变描边，banner 底部显示同款强调条。
+
+## 构建与运行注意（2026-11-11）
+
+- 不要在 VNCL 运行时覆盖 `dist\VNCL.exe`：Java 会从该可执行 jar 中延迟加载类，覆盖后运行中的实例会出现 `NoClassDefFoundError`。
+- `scripts/build-dist.ps1` 现在会检测 `javaw -jar VNCL.exe` 进程并直接拒绝构建；先关闭启动器再构建。
+- `CrashReporter` 改为一次性处理：未捕获异常处理本身失败时不会再递归上报，避免异常风暴导致 CPU 占满/堆溢出。

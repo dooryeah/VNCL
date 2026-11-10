@@ -25,6 +25,15 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Push-Location $root
 try {
+    # Java loads classes from VNCL.exe lazily. Replacing it while an instance is
+    # running breaks class loading and can trigger a crash-report loop.
+    $running = @(Get-CimInstance Win32_Process -Filter "Name='javaw.exe' OR Name='java.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -match 'VNCL\.exe' })
+    if ($running.Count -gt 0) {
+        $ids = ($running | ForEach-Object { $_.ProcessId }) -join ', '
+        throw "VNCL is still running (PID: $ids). Close it before building; overwriting the running jar breaks class loading."
+    }
+
     if (Test-Path $JavaHome) {
         $env:JAVA_HOME = $JavaHome
     }

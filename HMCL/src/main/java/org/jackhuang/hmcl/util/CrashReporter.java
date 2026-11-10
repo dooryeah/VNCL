@@ -9,6 +9,8 @@ import org.jackhuang.hmcl.countly.CrashReport;
 import org.jackhuang.hmcl.setting.SettingsManager;
 import org.jackhuang.hmcl.ui.CrashWindow;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static org.jackhuang.hmcl.util.Pair.pair;
 import static org.jackhuang.hmcl.util.i18n.I18n.i18n;
 import static org.jackhuang.hmcl.util.logging.Logger.LOG;
@@ -17,6 +19,9 @@ import static org.jackhuang.hmcl.util.logging.Logger.LOG;
  * @author huangyuhui
  */
 public final class CrashReporter implements Thread.UncaughtExceptionHandler {
+
+    /// Prevents the handler from recursively reporting its own failures.
+    private static final AtomicBoolean HANDLED = new AtomicBoolean();
 
     // Lazy initialization resources
     private static final class Hole {
@@ -73,26 +78,43 @@ public final class CrashReporter implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        LOG.error("Uncaught exception in thread " + t.getName(), e);
+        if (!HANDLED.compareAndSet(false, true)) {
+            return;
+        }
+
+        try {
+            LOG.error("Uncaught exception in thread " + t.getName(), e);
+        } catch (Throwable ignored) {
+        }
 
         try {
             CrashReport report = new CrashReport(t, e);
-            if (!report.shouldBeReport())
-                return;
-
-            LOG.error(report.getDisplayText());
-            Platform.runLater(() -> {
-                if (checkThrowable(e)) {
-                    if (showCrashWindow) {
-                        new CrashWindow(report).show();
+            if (report.shouldBeReport()) {
+                LOG.error(report.getDisplayText());
+                Platform.runLater(() -> {
+                    try {
+                        if (checkThrowable(e) && showCrashWindow) {
+                            new CrashWindow(report).show();
+                        }
+                    } catch (Throwable ignored) {
+                        // The crash handler must never throw another uncaught exception.
                     }
-                }
-            });
+                });
+            }
         } catch (Throwable handlingException) {
-            LOG.error("Unable to handle uncaught exception", handlingException);
+            try {
+                LOG.error("Unable to handle uncaught exception", handlingException);
+            } catch (Throwable ignored) {
+            }
         }
 
-        SettingsManager.shutdown();
-        LOG.shutdown();
+        try {
+            SettingsManager.shutdown();
+        } catch (Throwable ignored) {
+        }
+        try {
+            LOG.shutdown();
+        } catch (Throwable ignored) {
+        }
     }
 }
